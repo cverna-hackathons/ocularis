@@ -1,6 +1,6 @@
+config/config.js
+config/apis.json
 node_modules/
 public/components
 .sass-cache
 public/js
-config/config.js
-config/apis.json
