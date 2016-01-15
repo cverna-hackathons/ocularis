@@ -1,11 +1,16 @@
-module.exports = function() {
-  var Twitter = require('twitter');
-  var config = require('./../config/config')
- 
-  var client = new Twitter({
-    consumer_key: '',
-    consumer_secret: '',
-    access_token_key: '',
-    access_token_secret: ''
+module.exports = function(sequelize, DataTypes) {
+  var Feed = sequelize.define('Feed', {
+    title: DataTypes.STRING,
+    url: DataTypes.STRING,
+    text: DataTypes.STRING
+  }, {
+    classMethods: {
+      associate: function (models) {
+        // example on how to add relations
+        // Article.hasMany(models.Comments);
+      }
+    }
   });
-}
+
+  return Feed;
+};
