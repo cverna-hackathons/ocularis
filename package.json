@@ -1,0 +1,27 @@
+{
+  "name": "ocularis",
+  "version": "1.0.0",
+  "description": "show api feed on oculus",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cverna-hackathons/ocularis.git"
+  },
+  "keywords": [
+    "oculus",
+    "rift",
+    "virtual",
+    "reality",
+    "feed",
+    "api"
+  ],
+  "author": "Peter Berezny",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cverna-hackathons/ocularis/issues"
+  },
+  "homepage": "https://github.com/cverna-hackathons/ocularis"
+}
