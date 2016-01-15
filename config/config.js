@@ -1,6 +1,7 @@
 var path = require('path'),
     rootPath = path.normalize(__dirname + '/..'),
-    env = process.env.NODE_ENV || 'development';
+    env = process.env.NODE_ENV || 'development',
+    apis = require('./apis');
 
 var config = {
   development: {
@@ -9,7 +10,7 @@ var config = {
       name: 'ocularis'
     },
     port: 3000,
-    db: 'postgres://postgres:suwreB98@localhost/ocularis-development'
+    db: 'postgres://postgres:XXX@localhost/ocularis-development'
   },
 
   test: {

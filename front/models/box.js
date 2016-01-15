@@ -8,11 +8,11 @@ module.exports = function(opt) {
       height: 1,
       depth: 1
     },
-    material: new THREE.MeshLambertMaterial({color: 0xffffff})
+    material: new THREE.MeshBasicMaterial({color: 'red'})
   });
+  
+  var geometry = new THREE.CubeGeometry(opt.size.width, opt.size.height, opt.size.depth);
+  var box = new THREE.Mesh(geometry, opt.material);
 
-  return new THREE.Mesh(
-    new THREE.BoxGeometry(opt.size.width, opt.size.height, opt.size.depth),
-    opt.material
-  );
+  return box;
 }

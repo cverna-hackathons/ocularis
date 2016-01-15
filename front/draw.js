@@ -1,6 +1,6 @@
 module.exports = function(camera, renderer, scene) {
-  return function() {
-    console.log('draw init')
+  return function draw() {
+    requestAnimationFrame(draw);
     renderer.render(scene, camera);
   }
 }

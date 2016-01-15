@@ -19,37 +19,31 @@
         FOV: 100,
         CUTOFF: 0.1,
         ASPECT_RATIO: window.innerWidth / window.innerHeight,
-        TARGET_DISTANCE: 100,
+        TARGET_DISTANCE: 1000,
         INIT_POS: {
           x: 0,
           y: 0,
-          z: 50
+          z: 20
         }
       };
 
       var camera = new THREE.PerspectiveCamera(config.FOV, config.ASPECT_RATIO, config.CUTOFF, config.TARGET_DISTANCE);
 
-      camera.position.set(config.INIT_POS);
+      camera.position.set(config.INIT_POS.x, config.INIT_POS.y, config.INIT_POS.z);
       camera.lookAt({
         x: 0,
         y: 0,
-        z: 0
+        z: -10
       });
 
       return camera;
     }();
   }, {}], 2: [function (require, module, exports) {
-    module.exports = function (camera, renderer, scene) {
-      return function () {
-        renderer.render(scene, camera);
-      };
-    };
-  }, {}], 3: [function (require, module, exports) {
     var scene = require('./scene');
     var renderer = require('./renderer');
     var camera = require('./camera');
     var light = require('./light');
-    var draw = require('./draw')(camera, renderer, scene);
+    // var draw = require('./draw')(camera, renderer, scene);
 
     var box = require('./models/box');
 
@@ -59,15 +53,19 @@
 
     scene.add(bb);
     scene.add(light);
+    draw();
 
-    requestAnimationFrame(draw);
-  }, { "./camera": 1, "./draw": 2, "./light": 4, "./models/box": 5, "./renderer": 6, "./scene": 7 }], 4: [function (require, module, exports) {
+    function draw() {
+      requestAnimationFrame(draw);
+      renderer.render(scene, camera);
+    }
+  }, { "./camera": 1, "./light": 3, "./models/box": 4, "./renderer": 5, "./scene": 6 }], 3: [function (require, module, exports) {
     module.exports = function () {
       var ambient = new THREE.AmbientLight(0x666666);
 
       return ambient;
     }();
-  }, {}], 5: [function (require, module, exports) {
+  }, {}], 4: [function (require, module, exports) {
     module.exports = function (opt) {
       opt = _.defaults(opt || {}, {
         x: 0,
@@ -78,12 +76,15 @@
           height: 1,
           depth: 1
         },
-        material: new THREE.MeshLambertMaterial({ color: 0xffffff })
+        material: new THREE.MeshBasicMaterial({ color: 'red' })
       });
 
-      return new THREE.Mesh(new THREE.BoxGeometry(opt.size.width, opt.size.height, opt.size.depth), opt.material);
+      var geometry = new THREE.CubeGeometry(opt.size.width, opt.size.height, opt.size.depth);
+      var box = new THREE.Mesh(geometry, opt.material);
+
+      return box;
     };
-  }, {}], 6: [function (require, module, exports) {
+  }, {}], 5: [function (require, module, exports) {
     module.exports = function () {
 
       var renderer = new THREE.WebGLRenderer({
@@ -92,18 +93,16 @@
       });
 
       renderer.shadowMapSoft = true;
-
       renderer.setSize(window.innerWidth, window.innerHeight);
-
       renderer.setClearColor(0x000000, 1);
 
       return renderer;
     }();
-  }, {}], 7: [function (require, module, exports) {
+  }, {}], 6: [function (require, module, exports) {
     module.exports = function () {
 
       var scene = new THREE.Scene();
 
       return scene;
     }();
-  }, {}] }, {}, [3]);
+  }, {}] }, {}, [2]);

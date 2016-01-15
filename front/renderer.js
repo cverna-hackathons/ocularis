@@ -6,9 +6,7 @@ module.exports = (function() {
   });
 
   renderer.shadowMapSoft = true;
-
   renderer.setSize(window.innerWidth, window.innerHeight);
-
   renderer.setClearColor(0x000000, 1);
 
   return renderer;
