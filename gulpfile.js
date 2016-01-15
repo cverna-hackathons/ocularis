@@ -23,7 +23,7 @@ gulp.task('sass', function () {
 
 gulp.task('watch', function() {
   gulp.watch('./public/css/*.scss', ['sass']);
-  gulp.watch('front/app.js', ['scripts']);
+  gulp.watch('front/**/*.js', ['scripts']);
 });
 
 gulp.task('develop', function () {

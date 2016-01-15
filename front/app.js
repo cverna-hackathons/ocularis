@@ -1,5 +1,16 @@
-var fuck = require('./models/model');
+var scene = require('./scene');
+var renderer = require('./renderer');
+var camera = require('./camera');
+var light = require('./light');
+var draw = require('./draw')(camera, renderer, scene);
 
-alert('Fuck you');
+var box = require('./models/box');
 
-fuck();
+$('#scene').html(renderer.domElement);
+
+var bb = box();
+
+scene.add(bb);
+scene.add(light);
+
+requestAnimationFrame(draw);

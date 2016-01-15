@@ -19,6 +19,8 @@
   "moduleType": [],
   "license": "MIT",
   "devDependencies": {
-    "three.js": "threejs#*"
+    "three.js": "threejs#*",
+    "underscore": "~1.8.3",
+    "jquery": "~2.2.0"
   }
 }
