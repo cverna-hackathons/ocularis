@@ -1,0 +1,24 @@
+{
+  "name": "ocularis",
+  "version": "0.0.1",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components",
+    "bower_components",
+    "public/components",
+    "test",
+    "tests"
+  ],
+  "homepage": "https://github.com/cverna-hackathons/ocularis",
+  "authors": [
+    "KandoSVK <kubo.kanitra@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "devDependencies": {
+    "three.js": "threejs#*"
+  }
+}
