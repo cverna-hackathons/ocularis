@@ -40,7 +40,8 @@
     }();
   }, {}], 2: [function (require, module, exports) {
     module.exports = function (camera, renderer, scene) {
-      return function () {
+      return function fuck() {
+        requestAnimationFrame(fuck);
         renderer.render(scene, camera);
       };
     };
