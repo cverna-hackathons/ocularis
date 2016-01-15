@@ -3,10 +3,12 @@ var gulp = require('gulp'),
   plumber = require('gulp-plumber'),
   livereload = require('gulp-livereload'),
   sass = require('gulp-ruby-sass'),
-  babel = require('gulp-babel');
+  babel = require('gulp-babel'),
+  browserify = require('gulp-browserify');
 
 gulp.task('scripts', function() {
   return gulp.src('front/app.js')
+    .pipe(browserify())
     .pipe(babel({
       presets: ['es2015']
     }))
