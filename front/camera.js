@@ -4,11 +4,11 @@ module.exports = (function() {
     FOV: 100,
     CUTOFF: 0.1,
     ASPECT_RATIO: window.innerWidth / window.innerHeight,
-    TARGET_DISTANCE: 100,
+    TARGET_DISTANCE: 300,
     INIT_POS: {
       x: 0,
       y: 0,
-      z: 50
+      z: 20
     }
   };
 
@@ -20,7 +20,7 @@ module.exports = (function() {
   camera.lookAt({
     x: 0,
     y: 0,
-    z: 0
+    z: -10
   });
 
   return camera;

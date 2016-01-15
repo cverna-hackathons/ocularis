@@ -9,7 +9,7 @@ var config = {
       name: 'ocularis'
     },
     port: 3000,
-    db: 'postgres://localhost/ocularis-development'
+    db: 'postgres://postgres:suwreB98@localhost/ocularis-development'
   },
 
   test: {
