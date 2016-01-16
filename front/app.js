@@ -6,7 +6,7 @@ var draw = require('./draw')(camera, renderer, scene);
 
 var box = require('./models/box');
 
-$('#scene').html(renderer.domElement);
+document.body.appendChild(renderer.domElement);
 
 var bb = box();
 
