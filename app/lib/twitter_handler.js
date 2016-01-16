@@ -1,7 +1,7 @@
-module.exports = function() {
+module.exports = (function() {
   var Twitter = require('twitter');
   var config = require('./../../config/config')
- 
+
   var client = new Twitter({
     consumer_key: config.twitter.key,
     consumer_secret: config.twitter.secret,
@@ -10,4 +10,4 @@ module.exports = function() {
   });
 
   return client;
-}
+})();
