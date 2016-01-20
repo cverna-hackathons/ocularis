@@ -11,11 +11,14 @@ module.exports = function(opt) {
     },
     material: new THREE.MeshBasicMaterial({color: 'red'})
   });
-  
+
   var geometry = new THREE.CubeGeometry(opt.size.width, opt.size.height, opt.size.depth);
   var box = new THREE.Mesh(geometry, opt.material);
 
-  box.position.y = (opt.size.height / 2)
+  box.position.x = opt.x;
+  box.position.y = opt.y;
+  box.position.z = opt.z;
+  box.position.y += (opt.size.height / 2);
 
   return box;
 }

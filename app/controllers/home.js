@@ -13,8 +13,13 @@ router.get('/', function (req, res, next) {
   });
 });
 
-router.get('/feed', function(req, res) {
-  twitter_handler.get('statuses/user_timeline', {screen_name: 'jCobbSK', count: 100}, function(err, tweets){
-    res.json(tweets.length);
+router.get('/feed/:screenName', function(req, res) {
+  if(!req.params.screenName) {
+    res.json([]);
+    return;
+  }
+
+  twitter_handler.get('statuses/user_timeline', {screen_name: req.params.screenName, count: 100}, function(err, tweets){
+    res.json(tweets);
   });
 });
