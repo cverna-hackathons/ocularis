@@ -13,9 +13,11 @@ module.exports = (() => {
       ENGINE.renderer = require('./renderer')(ENGINE);
       ENGINE.motion   = require('./motion')(ENGINE);
       ENGINE.draw     = require('./draw')(ENGINE);
-      
+      ENGINE.floor    = require('./floor')(ENGINE);
+
       ENGINE.scene.add(bb);
       ENGINE.scene.add(light);
+      ENGINE.scene.add(ENGINE.floor);
       ENGINE.frameUpdate = true;
 
       $('#scene').html(ENGINE.renderer.domElement);

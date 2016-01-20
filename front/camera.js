@@ -7,7 +7,7 @@ module.exports = ENGINE => {
     TARGET_DISTANCE: 1000,
     INIT_POS: {
       x: 0,
-      y: 0,
+      y: 2,
       z: 20
     }
   };

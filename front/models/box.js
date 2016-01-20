@@ -1,4 +1,5 @@
 module.exports = function(opt) {
+
   opt = _.defaults(opt || {}, {
     x: 0,
     y: 0,
@@ -13,6 +14,8 @@ module.exports = function(opt) {
   
   var geometry = new THREE.CubeGeometry(opt.size.width, opt.size.height, opt.size.depth);
   var box = new THREE.Mesh(geometry, opt.material);
+
+  box.position.y = (opt.size.height / 2)
 
   return box;
 }
