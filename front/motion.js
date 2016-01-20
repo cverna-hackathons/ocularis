@@ -54,7 +54,7 @@ module.exports = ENGINE => {
         ENGINE.camera['translate' + dimension.toUpperCase()](fieldValue);
         if (decayVector[dimension]) {
           cameraVector[dimension] = (
-            Math.abs(fieldValue) > baseIncrement ? (fieldValue / 4) : 0
+            Math.abs(fieldValue) > baseIncrement ? (fieldValue / 1.2) : 0
           );
           decayVector[dimension] = (cameraVector[dimension] !== 0)
         }
