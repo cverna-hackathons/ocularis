@@ -3,7 +3,7 @@ module.exports = ENGINE => {
     requestAnimationFrame(draw);
     ENGINE.motion.update();
     if (ENGINE.frameUpdate) {
-      console.log('rendering')
+      // console.log('rendering')
       ENGINE.frameUpdate = false;
       ENGINE.renderer.render(ENGINE.scene, ENGINE.camera);
     }

@@ -1,7 +1,7 @@
 module.exports = ENGINE => {
 
-  const baseIncrement             = 0.1;
-  const maxIncrement              = 1;
+  const baseIncrement = 0.1;
+  const maxIncrement  = 1;
 
   let directionToVector  = {
     forward   : ['z', -1],
@@ -22,7 +22,7 @@ module.exports = ENGINE => {
     x: false,
     y: false,
     z: false
-  }
+  };
 
   let incite = (direction) => {
     let operators     = directionToVector[direction];
@@ -39,6 +39,8 @@ module.exports = ENGINE => {
   };
 
   let impede = (direction) => {
+    if (direction === 'reset') return ENGINE.resetView();
+
     let operators     = directionToVector[direction];
     let dimension     = operators[0];
     
@@ -49,7 +51,7 @@ module.exports = ENGINE => {
     // Let's update camera if we have vectors
     _.each(cameraVector, (fieldValue, dimension) => {
       if (fieldValue !== 0) {
-        console.log('cameraVector:', cameraVector)
+        // console.log('cameraVector:', cameraVector)
 
         ENGINE.camera['translate' + dimension.toUpperCase()](fieldValue);
         if (decayVector[dimension]) {
