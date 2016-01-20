@@ -17,7 +17,6 @@ module.exports = (() => {
       ENGINE.scene.add(bb);
       ENGINE.scene.add(light);
       ENGINE.scene.add(ENGINE.floor);
-      
 
       $('#scene').html(ENGINE.renderer.domElement);
       ENGINE.draw();
@@ -30,7 +29,7 @@ module.exports = (() => {
     }
   };
   let getEventKeyDirection = (event) => {
-    console.log('getEventKeyDirection | event.keyCode:', event.keyCode)
+    console.log('getEventKeyDirection | event.keyCode:', event.keyCode);
     let direction;
     switch (event.keyCode) {
       case 38:
@@ -59,15 +58,15 @@ module.exports = (() => {
   };
 
   let untrackKeys = event => {
-    let direction = getEventKeyDirection(event)
+    let direction = getEventKeyDirection(event);
 
     if (direction) 
-      ENGINE.motion.impede(direction)
+      ENGINE.motion.impede(direction);
   };
 
   let setTriggers = () => {
-    $("body").on("keypress", trackKeys)
-    $("body").on("keyup", untrackKeys)
+    $("body").on("keypress", trackKeys);
+    $("body").on("keyup", untrackKeys);
   };
 
   ENGINE.init();
