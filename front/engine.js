@@ -20,6 +20,14 @@ module.exports = (() => {
       ENGINE.scene.add(ENGINE.floor);
       ENGINE.frameUpdate = true;
 
+      //RENDER test tweet feed -> it will be triggered differently
+      require('./twitter/feed')(null, (err, objects) => {
+        objects.forEach((obj) => {
+          ENGINE.scene.add(obj);
+          ENGINE.frameUpdate = true;
+        });
+      });
+
       $('#scene').html(ENGINE.renderer.domElement);
       ENGINE.draw();
 
@@ -65,5 +73,3 @@ module.exports = (() => {
 
   return ENGINE;
 })();
-
-
