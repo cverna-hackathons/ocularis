@@ -1,4 +1,4 @@
-module.exports = (function() {
+module.exports = ENGINE => {
 
   var renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -10,4 +10,4 @@ module.exports = (function() {
   renderer.setClearColor(0x000000, 1);
 
   return renderer;
-})();
+};

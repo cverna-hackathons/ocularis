@@ -7,7 +7,7 @@ var gulp = require('gulp'),
   browserify = require('gulp-browserify');
 
 gulp.task('scripts', function() {
-  return gulp.src('front/app.js')
+  return gulp.src('front/engine.js')
     .pipe(browserify())
     .pipe(babel({
       presets: ['es2015']

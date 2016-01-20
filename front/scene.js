@@ -1,7 +1,7 @@
-module.exports = (function() {
+module.exports = ENGINE => {
 
   var scene = new THREE.Scene();
 
   return scene;
 
-})();
+};

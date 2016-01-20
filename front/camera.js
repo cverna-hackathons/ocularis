@@ -1,6 +1,6 @@
-module.exports = (function() {
+module.exports = ENGINE => {
 
-  var config = {
+  let config = {
     FOV: 100,
     CUTOFF: 0.1,
     ASPECT_RATIO: window.innerWidth / window.innerHeight,
@@ -12,7 +12,7 @@ module.exports = (function() {
     }
   };
 
-  var camera = new THREE.PerspectiveCamera(
+  let camera = new THREE.PerspectiveCamera(
     config.FOV, config.ASPECT_RATIO, config.CUTOFF, config.TARGET_DISTANCE
   );
 
@@ -24,5 +24,4 @@ module.exports = (function() {
   });
 
   return camera;
-
-})();
+};
