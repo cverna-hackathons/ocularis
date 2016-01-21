@@ -4,37 +4,36 @@
  * @param  {Object}   opt
  * @param  {Function} callback
  */
-module.exports = function(opt, callback) {
+module.exports = function(callback, feedOptions, displayOptions) {
 
   var tweetElement = require('./element');
   var floor;
 
-  opt = _.defaults(opt || {}, {
-
+  feedOptions = _.defaults(feedOptions || {}, {
     //name of twitter feed for loading data
     channelScreenName: 'jCobbSK',
-    //position of first element of feed
-    initialPosition: new THREE.Vector3(0, 0, 0),
-    //direction of elements of feed
-    directionVector: new THREE.Vector3(0, 0, 1),
-    // Distance between feed elements
-    spaceBetweenElements: 5
-
+    // Limit the number of tweets returned
+    loadCountLimit: 10
   });
 
-  $.ajax({
-    method: 'GET',
-    url: `/feed/${opt.channelScreenName}`,
-    success: function (data) { callback(null, processData(data)); },
-    error: function (err) { callback(err); }
-  });
+  console.log(feedOptions)
+  $.post("/feed", feedOptions, processData);
 
   function processData(tweets) {
+    displayOptions = _.defaults(displayOptions || {}, {
+      //position of first element of feed
+      initialPosition: new THREE.Vector3(0, 0, 0),
+      //direction of elements of feed
+      directionVector: new THREE.Vector3(0, 0, 1),
+      // Distance between feed elements
+      spaceBetweenElements: 5,
+    });
+    console.log(tweets)
     var result = [], lineDistance;
-    var actualPosition = new THREE.Vector3().copy(opt.initialPosition);
+    var actualPosition = new THREE.Vector3().copy(displayOptions.initialPosition);
     var shiftVector = new THREE.Vector3()
-                        .copy(opt.directionVector)
-                        .multiplyScalar(-opt.spaceBetweenElements);
+                        .copy(displayOptions.directionVector)
+                        .multiplyScalar(-displayOptions.spaceBetweenElements);
 
     tweets.forEach(function (tweet) {
       result.push(
@@ -43,7 +42,7 @@ module.exports = function(opt, callback) {
       actualPosition.add(shiftVector);
     });
 
-    lineDistance = (opt.spaceBetweenElements * result.length);
+    lineDistance = (displayOptions.spaceBetweenElements * result.length);
 
     floor = require('../models/floor')({
       color: 'blue',
@@ -58,7 +57,7 @@ module.exports = function(opt, callback) {
 
     result.push(floor);
 
-    return result;
+    return callback(null, result);
   }
 
 }

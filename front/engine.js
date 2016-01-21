@@ -17,7 +17,7 @@ module.exports = (function() {
       ENGINE.scene.add(light);
 
       //RENDER test tweet feed -> it will be triggered differently
-      require('./twitter/feed')(null, function (err, objects) {
+      require('./twitter/feed')(function (err, objects) {
         objects.forEach(function (obj) {
           ENGINE.scene.add(obj);
           ENGINE.frameUpdate = true;

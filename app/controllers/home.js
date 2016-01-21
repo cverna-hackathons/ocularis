@@ -13,13 +13,17 @@ router.get('/', function (req, res, next) {
   });
 });
 
-router.get('/feed/:screenName', function(req, res) {
-  if(!req.params.screenName) {
+router.post('/feed', function(req, res) {
+  if(!req.body.channelScreenName) {
     res.json([]);
     return;
   }
 
-  twitter_handler.get('statuses/user_timeline', {screen_name: req.params.screenName, count: 100}, function(err, tweets){
-    res.json(tweets);
+  twitter_handler.get('statuses/user_timeline', {
+    screen_name: req.body.channelScreenName, 
+    count: parseInt(req.body.loadCountLimit || 20)
+  }, function (err, tweets) { 
+    console.log(tweets)
+    res.send(tweets); 
   });
 });
