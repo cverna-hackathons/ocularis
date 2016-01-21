@@ -64,4 +64,6 @@ module.exports = function(app, config) {
       });
   });
 
+  app.listen(config.port);
+
 };
