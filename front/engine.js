@@ -59,19 +59,19 @@ module.exports = (function() {
   var trackKeys = function (event) {
     var direction = getEventKeyDirection(event);
 
-    if (direction && direction !== 'reset') 
+    if (direction && direction !== 'reset')
       ENGINE.motion.incite(direction);
   };
 
   var untrackKeys = function (event) {
     var direction = getEventKeyDirection(event);
 
-    if (direction) 
+    if (direction)
       ENGINE.motion.impede(direction);
   };
 
   var setTriggers = function () {
-    $("body").on("keypress", trackKeys);
+    $("body").on("keydown", trackKeys);
     $("body").on("keyup", untrackKeys);
   };
 
