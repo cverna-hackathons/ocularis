@@ -1,26 +1,24 @@
-module.exports = (() => {
+module.exports = (function() {
 
-  let ENGINE = {
-    init: () => {
+  var ENGINE = {
+    init: function () {
       const COMPONENTS = ['scene', 'camera', 'renderer'];
 
-      let light = require('./light');
-      let box   = require('./models/box');
-      let bb    = box();
+      var light = require('./light');
+      var box   = require('./models/box');
+      var bb    = box();
 
       ENGINE.resetView();
       ENGINE.scene    = require('./scene')(ENGINE);
       ENGINE.renderer = require('./renderer')(ENGINE);
       ENGINE.motion   = require('./motion')(ENGINE);
       ENGINE.draw     = require('./draw')(ENGINE);
-      ENGINE.floor    = require('./floor')(ENGINE);
       ENGINE.scene.add(bb);
       ENGINE.scene.add(light);
-      ENGINE.scene.add(ENGINE.floor);
 
       //RENDER test tweet feed -> it will be triggered differently
-      require('./twitter/feed')(null, (err, objects) => {
-        objects.forEach((obj) => {
+      require('./twitter/feed')(null, function (err, objects) {
+        objects.forEach(function (obj) {
           ENGINE.scene.add(obj);
           ENGINE.frameUpdate = true;
         });
@@ -31,14 +29,14 @@ module.exports = (() => {
 
       $(document).ready(setTriggers);
     },
-    resetView: () => {
+    resetView: function () {
       ENGINE.camera = require('./camera')(ENGINE);
       ENGINE.frameUpdate = true;
     }
   };
-  let getEventKeyDirection = (event) => {
+  var getEventKeyDirection = function (event) {
     console.log('getEventKeyDirection | event.keyCode:', event.keyCode);
-    let direction;
+    var direction;
     switch (event.keyCode) {
       case 38:
         direction = 'forward';
@@ -58,21 +56,21 @@ module.exports = (() => {
     }
     return direction;
   };
-  let trackKeys = event => {
-    let direction = getEventKeyDirection(event);
+  var trackKeys = function (event) {
+    var direction = getEventKeyDirection(event);
 
     if (direction && direction !== 'reset') 
       ENGINE.motion.incite(direction);
   };
 
-  let untrackKeys = event => {
-    let direction = getEventKeyDirection(event);
+  var untrackKeys = function (event) {
+    var direction = getEventKeyDirection(event);
 
     if (direction) 
       ENGINE.motion.impede(direction);
   };
 
-  let setTriggers = () => {
+  var setTriggers = function () {
     $("body").on("keypress", trackKeys);
     $("body").on("keyup", untrackKeys);
   };

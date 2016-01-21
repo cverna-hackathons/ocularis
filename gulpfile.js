@@ -21,7 +21,7 @@ gulp.task('sass', function () {
     .pipe(livereload());
 });
 
-gulp.task('watch', function() {
+gulp.task('watch', function () {
   gulp.watch('./public/css/*.scss', ['sass']);
   gulp.watch('front/**/*.js', ['scripts']);
 });
@@ -34,7 +34,7 @@ gulp.task('develop', function () {
   }).on('restart', function () {
     setTimeout(function () {
       livereload.changed(__dirname);
-    }, 500);
+    }, 3000);
   });
 });
 

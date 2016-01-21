@@ -1,4 +1,4 @@
-module.exports = ENGINE => {
+module.exports = function (ENGINE) {
 
   let config = {
     FOV: 100,
@@ -19,8 +19,8 @@ module.exports = ENGINE => {
   camera.position.set(config.INIT_POS.x, config.INIT_POS.y, config.INIT_POS.z);
   camera.lookAt({
     x: 0,
-    y: 0,
-    z: -10
+    y: 2,
+    z: 20
   });
 
   return camera;
