@@ -85,15 +85,17 @@ OCULARIS.engine = (function() {
   function trackKeys (event) {
     var direction = getEventKeyDirection(event, 'keydown');
 
-    if (direction && direction !== 'reset') 
+    if (direction && direction !== 'reset') {
       ENGINE.motion.incite(direction);
+    }
   }
 
   function untrackKeys (event) {
     var direction = getEventKeyDirection(event, 'keyup');
 
-    if (direction) 
+    if (direction) {
       ENGINE.motion.impede(direction);
+    }
   }
 
   function setTriggers () {

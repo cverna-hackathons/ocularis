@@ -31,17 +31,20 @@ OCULARIS.motion = function () {
     var curFieldValue = cameraVector[dimension];
     var curFieldAbs   = Math.abs(curFieldValue);
 
+    
     if (curFieldAbs < maxIncrement) {
+
       cameraVector[dimension] = (
         curFieldValue + (pointer * baseIncrement)
       )
+      console.log('incite:', cameraVector, OCULARIS.engine.frameUpdate, cameraVector[dimension])
     }
   };
 
   var impede = function (direction) {
     var operators     = directionToVector[direction];
     var dimension     = operators[0];
-    
+
     decayVector[dimension] = true
   };
 
@@ -56,6 +59,8 @@ OCULARIS.motion = function () {
           );
           decayVector[dimension] = (cameraVector[dimension] !== 0)
         }
+        console.log('updating motion')
+
         if (!OCULARIS.engine.frameUpdate) OCULARIS.engine.frameUpdate = true;
       }
     })
