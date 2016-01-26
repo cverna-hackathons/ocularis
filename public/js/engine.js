@@ -14,8 +14,9 @@ OCULARIS.engine = (function() {
       ENGINE.renderer = OCULARIS.renderer();
       ENGINE.motion   = OCULARIS.motion();
       ENGINE.draw     = OCULARIS.draw();
+      ENGINE.view     = OCULARIS.view();
 
-      ENGINE.resetView();
+      ENGINE.view.reset();
       ENGINE.scene.add(box);
       ENGINE.scene.add(ENGINE.light);
 
@@ -31,17 +32,9 @@ OCULARIS.engine = (function() {
       ENGINE.draw();
       setTriggers();
     },
-    resetView: function () {
-      ENGINE.camera       = OCULARIS.camera();
-      ENGINE.frameUpdate  = true;
-    },
     switchVR: function () {
       ENGINE.VREnabled = !ENGINE.VREnabled;
-      ENGINE.resetView();
-      if (ENGINE.VREnabled) 
-        ENGINE.enableVR();
-      else
-        ENGINE.disableVR();
+      ENGINE.view.reset();
     },
     enableVR: function () {
       ENGINE.VRControls = new THREE.VRControls(ENGINE.camera);

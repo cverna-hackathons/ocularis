@@ -18,8 +18,8 @@ OCULARIS.twitter.element = function(options, tweet) {
     background: 0xeeeeee
   });
   var textResolution = { 
-    x: parseInt(options.size.width * 200),
-    y: parseInt(options.size.width * 200)
+    x: 512,
+    y: 512
   }
   var dynamicText = new THREEx.DynamicTexture(
     textResolution.x, textResolution.y
