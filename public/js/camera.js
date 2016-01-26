@@ -7,7 +7,7 @@ OCULARIS.camera = function () {
     TARGET_DISTANCE: 1000,
     INIT_POS: {
       x: 0,
-      y: 2,
+      y: 4,
       z: 20
     }
   };
@@ -17,11 +17,7 @@ OCULARIS.camera = function () {
   );
 
   camera.position.set(config.INIT_POS.x, config.INIT_POS.y, config.INIT_POS.z);
-  camera.lookAt({
-    x: 0,
-    y: 2,
-    z: 20
-  });
+  camera.lookAt(config.INIT_POS);
 
   return camera;
 };

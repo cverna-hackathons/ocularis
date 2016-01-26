@@ -15,18 +15,14 @@ OCULARIS.engine = (function() {
       ENGINE.motion   = OCULARIS.motion();
       ENGINE.draw     = OCULARIS.draw();
       ENGINE.view     = OCULARIS.view();
+      ENGINE.content  = OCULARIS.content();
 
       ENGINE.view.reset();
       ENGINE.scene.add(box);
       ENGINE.scene.add(ENGINE.light);
 
       //RENDER test tweet feed -> it will be triggered differently
-      OCULARIS.twitter.feed(function (err, objects) {
-        objects.forEach(function (obj) {
-          ENGINE.scene.add(obj);
-          ENGINE.frameUpdate = true;
-        });
-      });
+      OCULARIS.twitter.feed.load();
 
       $('#scene').html(ENGINE.renderer.domElement);
       ENGINE.draw();

@@ -11,7 +11,12 @@ OCULARIS.view = function () {
   }
 
   function closeTo(element) {
-    
+    if (element) {
+      console.log('closeTo | element:', element);
+    }
+    else {
+      console.log('ENGINE.camera:', ENGINE.camera);
+    }
   }
 
   return {
