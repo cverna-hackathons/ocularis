@@ -57,7 +57,7 @@ OCULARIS.engine = (function() {
   };
 
   function getEventKeyDirection (event, trigger) {
-    console.log('getEventKeyDirection | event.keyCode, event.which:', event.keyCode, event.which, trigger);
+    console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
     var direction;
     switch (event.keyCode) {
       case 38:

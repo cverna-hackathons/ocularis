@@ -37,7 +37,9 @@ OCULARIS.twitter.feed = function(callback, feedOptions, displayOptions) {
 
     tweets.forEach(function (tweet) {
       result.push(
-        tweetElement(new THREE.Vector3().copy(actualPosition), tweet)
+        tweetElement({ 
+          position: new THREE.Vector3().copy(actualPosition)
+        }, tweet)
       );
       actualPosition.add(shiftVector);
     });

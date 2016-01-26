@@ -1,3 +1,5 @@
+'use strict'
+
 var express = require('express');
 var glob = require('glob');
 
@@ -64,6 +66,8 @@ module.exports = function(app, config) {
       });
   });
 
-  app.listen(config.port);
+  app.listen(config.port, () => {
+    console.log(`OCULARIS Listening on port: ${config.port}.`);
+  });
 
 };
