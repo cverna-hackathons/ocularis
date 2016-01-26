@@ -1,4 +1,4 @@
-module.exports = ENGINE => {
+OCULARIS.renderer = function () {
 
   var renderer = new THREE.WebGLRenderer({
     antialias: true,

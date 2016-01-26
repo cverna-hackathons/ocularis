@@ -1,4 +1,4 @@
-module.exports = options => {
+OCULARIS.models.floor = function (options) {
 
   options = _.defaults(options || {}, {
     color: 0xd3d3d3,
@@ -20,5 +20,5 @@ module.exports = options => {
   floor.rotation.x = (-Math.PI / 2);
   floor.position.set(options.position.x, options.position.y, options.position.z);
 
-  return floor; 
+  return floor;
 };

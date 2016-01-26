@@ -1,22 +1,39 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width">
-  <title>{{title }}</title>
-  <link rel="stylesheet" href="/css/style.css">
-  {{#if ENV_DEVELOPMENT}}
-    <script src="http://localhost:35729/livereload.js"></script>
-  {{/if}}
-</head>
-<body>
-
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+  <body>
 
   {{{body}}}
 
-  <script src="components/jquery/dist/jquery.js"></script>
-  <script src="components/underscore/underscore.js"></script>
-  <script src="components/three.js/build/three.js"></script>
+  <!-- External dependency load -->
+  <script src="external/jquery-2.2.0.min.js"></script>
+  <script src="external/underscore-min.js"></script>
+  <script src="external/three-dev.min.js"></script>
+  <script src="external/threex.dynamictexture.js"></script>
+  
+  <script src="external/VRControls-with-controls.js"></script>
+  <script src="external/VREffect.js"></script>
+  <!-- Internal js dependency load -->
   <script src="js/engine.js"></script>
+  <!-- Instance level modules load -->
+  <script src="js/models/box.js"></script>
+  <script src="js/models/floor.js"></script>
+  <script src="js/twitter/element.js"></script>
+  <script src="js/twitter/feed.js"></script>
+  <!-- Top level modules load -->
+  <script src="js/light.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/scene.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/motion.js"></script>
+  <script src="js/view.js"></script>
+  <script src="js/light.js"></script>
+  <script src="js/draw.js"></script>
+  
   </body>
 </html>

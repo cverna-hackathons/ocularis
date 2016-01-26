@@ -1,4 +1,4 @@
-module.exports = function(opt) {
+OCULARIS.models.box = function(opt) {
 
   opt = _.defaults(opt || {}, {
     x: 0,
@@ -21,4 +21,4 @@ module.exports = function(opt) {
   box.position.y += (opt.size.height / 2);
 
   return box;
-}
+};

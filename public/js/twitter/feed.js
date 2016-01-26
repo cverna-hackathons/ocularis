@@ -4,13 +4,13 @@
  * @param  {Object}   opt
  * @param  {Function} callback
  */
-module.exports = function(callback, feedOptions, displayOptions) {
+OCULARIS.twitter.feed = function(callback, feedOptions, displayOptions) {
 
-  var tweetElement = require('./element');
+  var tweetElement = OCULARIS.twitter.element;
   var floor;
 
   feedOptions = _.defaults(feedOptions || {}, {
-    //name of twitter feed for loading data
+    // Name of twitter feed for loading data
     channelScreenName: 'jCobbSK',
     // Limit the number of tweets returned
     loadCountLimit: 10
@@ -37,14 +37,16 @@ module.exports = function(callback, feedOptions, displayOptions) {
 
     tweets.forEach(function (tweet) {
       result.push(
-        tweetElement(new THREE.Vector3().copy(actualPosition), tweet)
+        tweetElement({ 
+          position: new THREE.Vector3().copy(actualPosition)
+        }, tweet)
       );
       actualPosition.add(shiftVector);
     });
 
     lineDistance = (displayOptions.spaceBetweenElements * result.length);
 
-    floor = require('../models/floor')({
+    floor = OCULARIS.models.floor({
       color: 'blue',
       width: 10,
       height: lineDistance,

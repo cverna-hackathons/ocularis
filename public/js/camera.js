@@ -1,7 +1,7 @@
-module.exports = function (ENGINE) {
+OCULARIS.camera = function () {
 
-  let config = {
-    FOV: 100,
+  var config = {
+    FOV: 75,
     CUTOFF: 0.1,
     ASPECT_RATIO: window.innerWidth / window.innerHeight,
     TARGET_DISTANCE: 1000,
@@ -12,7 +12,7 @@ module.exports = function (ENGINE) {
     }
   };
 
-  let camera = new THREE.PerspectiveCamera(
+  var camera = new THREE.PerspectiveCamera(
     config.FOV, config.ASPECT_RATIO, config.CUTOFF, config.TARGET_DISTANCE
   );
 
