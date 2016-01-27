@@ -46,7 +46,7 @@ OCULARIS.engine = (function() {
   };
 
   function getEventKeyDirection (event, trigger) {
-    console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
+    // console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
     var direction;
     switch (event.keyCode) {
       case 38:
@@ -88,7 +88,7 @@ OCULARIS.engine = (function() {
   }
 
   function setTriggers () {
-    $("body").on("keypress", trackKeys);
+    $("body").on("keydown", trackKeys);
     $("body").on("keyup", untrackKeys);
   }
 

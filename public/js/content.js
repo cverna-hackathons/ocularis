@@ -29,6 +29,7 @@ OCULARIS.content = function () {
         res = true
       }       
     }
+    else res = true;
     
     return res;
   }

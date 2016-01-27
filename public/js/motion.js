@@ -59,7 +59,7 @@ OCULARIS.motion = function () {
           );
           decayVector[dimension] = (cameraVector[dimension] !== 0)
         }
-        console.log('updating motion')
+        // console.log('updating motion')
 
         if (!OCULARIS.engine.frameUpdate) OCULARIS.engine.frameUpdate = true;
       }
