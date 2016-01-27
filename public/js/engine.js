@@ -16,13 +16,12 @@ OCULARIS.engine = (function() {
       ENGINE.draw     = OCULARIS.draw();
       ENGINE.view     = OCULARIS.view();
       ENGINE.content  = OCULARIS.content();
+      ENGINE.feed     = OCULARIS.feed();
 
       ENGINE.view.reset();
       ENGINE.scene.add(box);
       ENGINE.scene.add(ENGINE.light);
-
-      //RENDER test tweet feed -> it will be triggered differently
-      OCULARIS.twitter.feed.load();
+      ENGINE.content.update();
 
       $('#scene').html(ENGINE.renderer.domElement);
       ENGINE.draw();
@@ -40,7 +39,7 @@ OCULARIS.engine = (function() {
     },
     disableVR: function () {
       ENGINE.VRControls = null;
-      ENGINE.VREffect   = null;      
+      ENGINE.VREffect   = null;
       ENGINE.renderer.setSize(window.innerWidth, window.innerHeight);
     }
   };

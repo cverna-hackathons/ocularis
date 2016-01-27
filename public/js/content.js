@@ -1,6 +1,14 @@
 OCULARIS.content = function () {
   var elements = [];
   var ENGINE   = OCULARIS.engine;
+  var context  = {
+    elements: elements,
+    loadInProgress: false,
+    load: null,
+    addElement: addElement,
+    update: update,
+    assignLoadFunction: assignLoadFunction
+  };
 
   function addElement(object, params) {
     elements.push({
@@ -11,23 +19,55 @@ OCULARIS.content = function () {
     OCULARIS.engine.frameUpdate = true;
   }
 
+  function getLastElement() {
+    return (elements.length ? elements[elements.length - 1] : null);
+  }
+
+  function getElementHeight() {
+    
+  }
+
   function update() {
-    if (needsLoad()) {
-      console.log('needs load');
+    if (
+      !context.loadInProgress && needsLoad() && 
+      typeof context.load === 'function'
+    ) {
+      //console.log('needs load');
+      var lastElement = getLastElement();
+      var loadOptions = {};
+      var displayOptions = {};
+
+      if (lastElement) {
+        displayOptions.initialPosition = lastElement.object.position;
+        loadOptions.startFrom = lastElement.params.id;
+      }
+      context.loadInProgress = true;
+      context.load(loadOptions, displayOptions, function () {
+        context.loadInProgress = false;
+      });
     }
-    else console.log('no need for update')
+    // else console.log('no need for update')
+  }
+
+  function assignLoadFunction(fn) {
+    console.log('assignLoadFunction')
+    context.load = fn
   }
 
   function needsLoad() {
     var res;
 
-    if (elements.length > 0) {
-      var lastElement = elements[elements.length - 1].object;
-      var lastElementPosition = lastElement.position;
+    console.log('content load is function', (typeof context.load === 'function'))
+    var lastElement = getLastElement()
+
+    if (lastElement) {
+      var lastElementPosition = lastElement.object.position;
       var currentCameraPosition = ENGINE.camera.position;
-      if (withinDistance(2, lastElementPosition, currentCameraPosition)) {
-        res = true
-      }       
+
+      console.log('lastElementPosition:', lastElementPosition)
+      if (withinDistance(10, lastElementPosition, currentCameraPosition)) {
+        res = true;
+      }
     }
     else res = true;
     
@@ -47,9 +87,5 @@ OCULARIS.content = function () {
     );
   }
 
-  return {
-    addElement: addElement,
-    elements: elements,
-    update: update
-  };
+  return context;
 }
