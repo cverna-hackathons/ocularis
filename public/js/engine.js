@@ -61,9 +61,11 @@ OCULARIS.engine = (function() {
       case 39:
         direction = 'right';
         break;
+      // Spacebar press
       case 32:
-        OCULARIS.engine.resetView();
+        if (trigger === 'keyup') ENGINE.view.reset();
         break;
+      // Enter press
       case 13:
         if (trigger === 'keyup') OCULARIS.engine.switchVR();
         break;

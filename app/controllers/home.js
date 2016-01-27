@@ -21,8 +21,5 @@ router.post('/feed', function(req, res) {
   twitter_handler.get('statuses/user_timeline', {
     screen_name: req.body.channelScreenName, 
     count: parseInt(req.body.loadCountLimit || 20)
-  }, function (err, tweets) { 
-    console.log(tweets)
-    res.send(tweets); 
-  });
+  }, (err, tweets) => res.send(tweets));
 });
