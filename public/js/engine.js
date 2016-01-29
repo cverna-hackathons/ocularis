@@ -44,7 +44,7 @@ OCULARIS.engine = (function() {
     },
     disableVR: function () {
       ENGINE.VRControls = null;
-      ENGINE.VREffect   = null;      
+      ENGINE.VREffect   = null;
       ENGINE.renderer.setSize(window.innerWidth, window.innerHeight);
     }
   };
@@ -92,7 +92,7 @@ OCULARIS.engine = (function() {
   }
 
   function setTriggers () {
-    $("body").on("keypress", trackKeys);
+    $("body").on("keydown", trackKeys);
     $("body").on("keyup", untrackKeys);
   }
 
