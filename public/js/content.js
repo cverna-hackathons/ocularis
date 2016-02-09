@@ -23,10 +23,6 @@ OCULARIS.content = function () {
     return (elements.length ? elements[elements.length - 1] : null);
   }
 
-  function getElementHeight() {
-    
-  }
-
   function update() {
     if (
       !context.loadInProgress && needsLoad() && 
@@ -50,7 +46,6 @@ OCULARIS.content = function () {
   }
 
   function assignLoadFunction(fn) {
-    console.log('assignLoadFunction')
     context.load = fn
   }
 
