@@ -37,7 +37,7 @@ OCULARIS.motion = function () {
       cameraVector[dimension] = (
         curFieldValue + (pointer * baseIncrement)
       )
-      console.log('incite:', cameraVector, OCULARIS.engine.frameUpdate, cameraVector[dimension])
+      // console.log('incite:', cameraVector, OCULARIS.engine.frameUpdate, cameraVector[dimension])
     }
   };
 

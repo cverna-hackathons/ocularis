@@ -52,14 +52,14 @@ OCULARIS.content = function () {
   function needsLoad() {
     var res;
 
-    console.log('content load is function', (typeof context.load === 'function'))
+    // console.log('content load is function', (typeof context.load === 'function'))
     var lastElement = getLastElement()
 
     if (lastElement) {
       var lastElementPosition = lastElement.object.position;
       var currentCameraPosition = ENGINE.camera.position;
 
-      console.log('lastElementPosition:', lastElementPosition)
+      // console.log('lastElementPosition:', lastElementPosition)
       if (withinDistance(10, lastElementPosition, currentCameraPosition)) {
         res = true;
       }
@@ -75,7 +75,7 @@ OCULARIS.content = function () {
     var yDistance = Math.abs(elementOnePos.y - elementTwoPos.y);
     var zDistance = Math.abs(elementOnePos.z - elementTwoPos.z);
 
-    console.log('xDistance, yDistance, zDistance:', xDistance, yDistance, zDistance);
+    // console.log('xDistance, yDistance, zDistance:', xDistance, yDistance, zDistance);
 
     return (
       xDistance < range && yDistance < range && zDistance < range

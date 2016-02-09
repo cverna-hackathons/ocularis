@@ -30,6 +30,7 @@ OCULARIS.engine = (function() {
     switchVR: function () {
       ENGINE.VREnabled = !ENGINE.VREnabled;
       ENGINE.view.reset();
+      console.log('switching to VR:', ENGINE.VREnabled)
     },
     enableVR: function () {
       ENGINE.VRControls = new THREE.VRControls(ENGINE.camera);
