@@ -1,25 +1,41 @@
 'use strict'
 
-var express         = require('express');
-var router          = express.Router();
-var twitter_handler = require('../lib/twitter_handler');
 
-module.exports = app => app.use('/', router);
+// var router          = express.Router();
 
-router.get('/', function (req, res, next) {
-  res.render('index', {
-    title: 'Ocularis'
+
+// module.exports = app => app.use('/', router);
+module.exports = app => {
+  var path = require('path');
+  // Render main page
+  app.get('/', (req, res) => res.render('index', { title: 'Ocularis' }));
+  // Load structure for the user, WIP
+  app.get('/content/structure', (req, res) => res.send({}));
+
+  app.post('/feed', (req, res) => {
+    var options = req.body;
+    var providerName = options.provider;
+    var providerPath = path.normalize(
+      __dirname + './../lib/feed_providers/' + providerName
+    );
+    var feedProvider = require(providerPath);
+
+    if (typeof feedProvider === 'object') {
+      
+      feedProvider.getElements(options, (err, elements) => {
+        console.log('feed 1')
+        res.send({
+          elements: elements,
+          error: err
+        });
+      });
+    }
+    else {
+      console.log('feed')
+      res.send({
+        elements: [],
+        error: 'Feed provider specified does not exist.'
+      });
+    }
   });
-});
-
-router.post('/feed', function(req, res) {
-  if(!req.body.channelScreenName) {
-    res.json([]);
-    return;
-  }
-
-  twitter_handler.get('statuses/user_timeline', {
-    screen_name: req.body.channelScreenName, 
-    count: parseInt(req.body.loadCountLimit || 20)
-  }, (err, tweets) => res.send(tweets));
-});
+};

@@ -1,12 +1,13 @@
 var OCULARIS = {
-  models: {},
-  twitter: {}
+  model: {},
+  component: {}
 };
 
 OCULARIS.engine = (function() {
   var ENGINE = {
+    models: [],
     init: function () {
-      var box   = OCULARIS.models.box();
+      var redBox   = OCULARIS.component.pointer();
 
       ENGINE.VREnabled= false
       ENGINE.light    = OCULARIS.light();
@@ -16,12 +17,11 @@ OCULARIS.engine = (function() {
       ENGINE.draw     = OCULARIS.draw();
       ENGINE.view     = OCULARIS.view();
       ENGINE.content  = OCULARIS.content();
-      ENGINE.feed     = OCULARIS.feed();
 
       ENGINE.view.reset();
-      ENGINE.scene.add(box);
+      ENGINE.scene.add(redBox);
       ENGINE.scene.add(ENGINE.light);
-      ENGINE.content.update();
+      ENGINE.content.init();
 
       $('#scene').html(ENGINE.renderer.domElement);
       ENGINE.draw();

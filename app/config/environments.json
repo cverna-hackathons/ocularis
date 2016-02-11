@@ -1,0 +1,25 @@
+{
+  "development": {
+    "app": {
+      "name": "ocularis"
+    },
+    "port": 3000,
+    "db": "postgres://postgres:suwreB98@localhost/ocularis-development"
+  },
+
+  "test": {
+    "app": {
+      "name": "ocularis"
+    },
+    "port": 3000,
+    "db": "postgres://localhost/ocularis-test"
+  },
+
+  "production": {
+    "app": {
+      "name": "ocularis"
+    },
+    "port": 3000,
+    "db": "postgres://localhost/ocularis-production"
+  }
+}

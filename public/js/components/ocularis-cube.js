@@ -1,4 +1,4 @@
-OCULARIS.twitter.element = function(options, tweet) {
+OCULARIS.component.cube = function(options, tweet) {
   var material;
   var options     = _.defaults(options || {}, {
     size: {

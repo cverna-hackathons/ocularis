@@ -1,4 +1,4 @@
-OCULARIS.models.box = function(opt) {
+OCULARIS.component.pointer = function(opt) {
 
   opt = _.defaults(opt || {}, {
     x: 0,
