@@ -1,6 +1,6 @@
 OCULARIS.draw = function () {
-  var engine = OCULARIS.engine;
   function draw () {
+    var engine = OCULARIS.engine;
     requestAnimationFrame(draw);
     if (engine.VREnabled) {
       engine.VRControls.update();
@@ -11,9 +11,9 @@ OCULARIS.draw = function () {
     else {
       engine.motion.update();
       if (engine.frameUpdate) {
-        engine.content.update();
+        engine.update();
         engine.frameUpdate = false;
-        engine.renderer.render(engine.scene, engine.camera);	
+        engine.renderer.render(engine.scene, engine.camera);
       }
     }
 

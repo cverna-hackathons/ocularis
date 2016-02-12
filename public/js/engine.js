@@ -1,9 +1,4 @@
-var OCULARIS = {
-  model: {},
-  component: {}
-};
-
-OCULARIS.engine = (function() {
+OCULARIS.createEngine = function () {
   var ENGINE = {
     models: [],
     init: function () {
@@ -16,16 +11,16 @@ OCULARIS.engine = (function() {
       ENGINE.motion   = OCULARIS.motion();
       ENGINE.draw     = OCULARIS.draw();
       ENGINE.view     = OCULARIS.view();
-      ENGINE.content  = OCULARIS.content();
 
-      ENGINE.view.reset();
+      OCULARIS.config.loadContentStructure(function() {
+        ENGINE.availableContent.models.forEach(initializeModel)
+      });
+
       ENGINE.scene.add(redBox);
       ENGINE.scene.add(ENGINE.light);
-      ENGINE.content.init();
 
-      $('#scene').html(ENGINE.renderer.domElement);
-      ENGINE.draw();
-      setTriggers();
+      // Set events
+      return ENGINE;
     },
     switchVR: function () {
       ENGINE.VREnabled = !ENGINE.VREnabled;
@@ -42,64 +37,72 @@ OCULARIS.engine = (function() {
       ENGINE.VRControls = null;
       ENGINE.VREffect   = null;
       ENGINE.renderer.setSize(window.innerWidth, window.innerHeight);
-    }
+    },
+    update: update,
+    getDistanceRelation: getDistanceRelation,
+    getFacesToCamera: getFacesToCamera
   };
 
-  function getEventKeyDirection (event, trigger) {
-    console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
-    var direction;
-    switch (event.keyCode) {
-      // W-key
-      // ArrowUp
-      case 38:
-        direction = 'forward';
-        break;
-      // ArrowDown
-      case 40:
-        direction = 'backward';
-        break;
-      // ArrowLeft
-      case 37:
-        direction = 'left';
-        break;
-      // ArrowRight
-      case 39:
-        direction = 'right';
-        break;
-      // Spacebar press
-      case 32:
-        if (trigger === 'keyup') ENGINE.view.reset();
-        break;
-      // Enter press
-      case 13:
-        if (trigger === 'keyup') OCULARIS.engine.switchVR();
-        break;
+  function update() {
+    ENGINE.models.forEach(function(model) {
+      if (model.active) model.checkUpdate();
+    });
+  }
+
+  function getFacesToCamera(objectOne) {
+    // var mostAlignedFaces = [];
+    var aligned = { value: null, faces: [] };
+
+    if (objectOne && objectOne.geometry && objectOne.geometry.faces) {
+      var faces = objectOne.geometry.faces;
+      var cameraLookAt = new THREE.Vector3(0,0, -1);
+
+      cameraLookAt.applyQuaternion(ENGINE.camera.quaternion);
+      faces.forEach(function(face) {
+        var radiansToLookAt = face.normal.angleTo(cameraLookAt);
+        // console.log('radiansToLookAt, face.normal, cameraLookAt:', radiansToLookAt, face.normal, cameraLookAt);
+        if (aligned.value === radiansToLookAt) {
+          aligned.faces.push(face);
+        }
+        else if (aligned.value === null || radiansToLookAt > aligned.value) {
+          aligned.value = radiansToLookAt;
+          aligned.faces = [face];
+        }
+      });
     }
-    return direction;
+    return aligned.faces;
   }
 
-  function trackKeys (event) {
-    var direction = getEventKeyDirection(event, 'keydown');
+  // Helpers
+  function getDistanceRelation(objectOne, objectTwo, vicinity) {
+    var relation       = {};
+    var objectOnePos   = objectOne.position;
+    var objectTwoPos   = objectTwo.position;
+    var distanceVec = new THREE.Vector3(
+      (objectOnePos.x - objectTwoPos.x),
+      (objectOnePos.y - objectTwoPos.y),
+      (objectOnePos.z - objectTwoPos.z)
+    );
 
-    if (direction && direction !== 'reset') {
-      ENGINE.motion.incite(direction);
+    relation.distanceVec = distanceVec;
+    relation.distance = objectOnePos.distanceTo(objectTwoPos);
+    relation.isClose = (relation.distance < vicinity);
+
+    return relation;
+  }
+
+  function initializeModel(model) {
+    var modelInstance;
+
+    if (
+      model.type && model.provider && model.displayComponent &&
+      typeof OCULARIS.model[model.type] === 'function'
+    ) {
+      modelInstance = OCULARIS.model[model.type](model);
+      ENGINE.models.push(modelInstance);
+      modelInstance.init();
     }
   }
 
-  function untrackKeys (event) {
-    var direction = getEventKeyDirection(event, 'keyup');
-
-    if (direction) {
-      ENGINE.motion.impede(direction);
-    }
-  }
-
-  function setTriggers () {
-    $("body").on("keydown", trackKeys);
-    $("body").on("keyup", untrackKeys);
-  }
-
-  return ENGINE;
-})();
-
-$(document).ready(OCULARIS.engine.init);
+  return ENGINE.init();
+};
