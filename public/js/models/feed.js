@@ -97,16 +97,16 @@ OCULARIS.model.feed = function (options) {
    * Bind events for rotating cube.
    */
   function bindEventTriggers() {
-    OCULARIS.engine.events.addEventListener('forward', function(){
+    OCULARIS.engine.events.addEventListener('forward', function () {
       rotateCube('up');
     });
-    OCULARIS.engine.events.addEventListener('backward', function(){
+    OCULARIS.engine.events.addEventListener('backward', function () {
       rotateCube('down');
     });
-    OCULARIS.engine.events.addEventListener('left', function(){
+    OCULARIS.engine.events.addEventListener('left', function () {
       rotateCube('left');
     });
-    OCULARIS.engine.events.addEventListener('right', function(){
+    OCULARIS.engine.events.addEventListener('right', function () {
       rotateCube('right');
     });
   }

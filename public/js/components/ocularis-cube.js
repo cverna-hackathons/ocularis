@@ -48,7 +48,7 @@ OCULARIS.component.cube = function(options) {
   }
 
   function setCameraRelation() {
-    relation.toCamera.facesTo = OCULARIS.engine.getFacesToCamera(cube);
+    relation.toCamera.faceIndices = OCULARIS.engine.getFacesToCamera(cube);
     _.extend(
       relation.toCamera,
       OCULARIS.engine.getDistanceRelation(cube, ENGINE.camera, options.vicinity)
@@ -71,20 +71,21 @@ OCULARIS.component.cube = function(options) {
   }
 
   function colorFacingSurface() {
-    var facesTo = relation.toCamera.facesTo || [];
+    var faceIndices = relation.toCamera.faceIndices || [];
     var change = false;
     var oldColor;
 
-    if (facesTo.length) {
-      facesTo.forEach(function(face) {
+    if (faceIndices.length) {
+      geometry.faces.forEach(function(face, faceIndex) {
         oldColor = face.color.getHex();
-        if (oldColor !== options.colors.active) {
-          face.color.setHex(options.colors.active);
+        newColor = options.colors[(faceIndices.indexOf(faceIndex) > -1 ? 'active' : 'close')]
+        if (oldColor !== newColor) {
+          face.color.setHex(newColor);
           change = true;
         }
       });
       if (change) {
-        console.log('colorFacingSurface cube:', cube);
+        console.log('colorFacingSurface cube, faceIndices:', cube, faceIndices);
         geometry.colorsNeedUpdate = true;
       }
     }
@@ -117,26 +118,29 @@ OCULARIS.component.cube = function(options) {
         break;
     }
 
-    function rotateAnimation(angle, axis, durationInSecs) {
-      var actualAngle = 0,
-          angleIncrement = angle / (durationInSecs * (1000 / 60));
-      var animationInterval = setInterval(function(){
-        if (Math.abs(actualAngle) > Math.abs(angle))
-          clearInterval(animationInterval);
-        else {
-          actualAngle += angleIncrement;
-          switch(axis) {
-            case 'x':
-              cube.rotateX(angleIncrement);
-              break;
-            case 'y':
-              cube.rotateY(angleIncrement);
-              break;
-          }
+    check();
+    OCULARIS.engine.frameUpdate = true;
+  }
+
+  function rotateAnimation(angle, axis, durationInSecs) {
+    var actualAngle = 0,
+        angleIncrement = angle / (durationInSecs * (1000 / 60));
+    var animationInterval = setInterval(function(){
+      if (Math.abs(actualAngle) > Math.abs(angle))
+        clearInterval(animationInterval);
+      else {
+        actualAngle += angleIncrement;
+        switch(axis) {
+          case 'x':
+            cube.rotateX(angleIncrement);
+            break;
+          case 'y':
+            cube.rotateY(angleIncrement);
+            break;
         }
-        OCULARIS.engine.frameUpdate = true;
-      }, 1000 / 60);
-    }
+      }
+      OCULARIS.engine.frameUpdate = true;
+    }, 1000 / 60);
   }
 
   return {
