@@ -57,7 +57,7 @@ OCULARIS.createEngine = function () {
 
   function getFacesToCamera(objectOne) {
     // var mostAlignedFaces = [];
-    var aligned = { value: null, faces: [] };
+    var aligned = { value: null, faceIndices: [] };
 
     if (objectOne && objectOne.geometry && objectOne.geometry.faces) {
       var faces = objectOne.geometry.faces;
@@ -65,20 +65,20 @@ OCULARIS.createEngine = function () {
       var normalMatrix = new THREE.Matrix3().getNormalMatrix(objectOne.matrixWorld);
 
       cameraLookAt.applyQuaternion(ENGINE.camera.quaternion);
-      faces.forEach(function(face) {
+      faces.forEach(function(face, faceIndex) {
         var worldNormal = face.normal.clone().applyMatrix3(normalMatrix).normalize();
         var radiansToLookAt = worldNormal.angleTo(cameraLookAt);
-        // console.log('radiansToLookAt, face.normal, cameraLookAt:', radiansToLookAt, face.normal, cameraLookAt);
+        
         if (aligned.value === radiansToLookAt) {
-          aligned.faces.push(face);
+          aligned.faceIndices.push(faceIndex);
         }
         else if (aligned.value === null || radiansToLookAt > aligned.value) {
           aligned.value = radiansToLookAt;
-          aligned.faces = [face];
+          aligned.faceIndices = [faceIndex];
         }
       });
     }
-    return aligned.faces;
+    return aligned.faceIndices;
   }
 
   // Helpers
