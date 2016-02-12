@@ -9,9 +9,9 @@ OCULARIS.draw = function () {
       engine.update();
     }
     else {
+      engine.update();
       engine.motion.update();
       if (engine.frameUpdate) {
-        engine.update();
         engine.frameUpdate = false;
         engine.renderer.render(engine.scene, engine.camera);
       }

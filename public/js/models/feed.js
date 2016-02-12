@@ -13,15 +13,16 @@ OCULARIS.model.feed = function (options) {
   var cameraVicinity= 10;
   // serves as a binding back from component
   var componentModel= {};
-  
+
   // Initializes the model component
   function init() {
     console.log('init feed');
-    var component = OCULARIS.component[componentType]({ 
+    var component = OCULARIS.component[componentType]({
       componentModel: componentModel
     });
     component.place();
     components.push(component);
+    ENGINE.frameUpdate = true;
   }
 
   // This function will load users preferred or default feed options
