@@ -5,7 +5,7 @@ OCULARIS.component.cube = function(options) {
   };
   var componentModel  = options.componentModel;
   var options         = _.defaults(options || {}, {
-    vicinity: 15,
+    vicinity: 25,
     size: {
       width: 4,
       height: 4,
@@ -83,10 +83,30 @@ OCULARIS.component.cube = function(options) {
     setOwnConditionals();
   }
 
+  function rotate(direction) {
+    var angle = Math.PI / 2;
+    switch(direction) {
+      case 'up':
+        cube.rotateX((-1) * angle);
+        break;
+      case 'down':
+        cube.rotateX(angle);
+        break;
+      case 'right':
+        cube.rotateY(angle);
+        break;
+      case 'left':
+        cube.rotateY((-1) * angle);
+        break;
+    }
+    OCULARIS.engine.frameUpdate = true;
+  }
+
   return {
     object: cube,
     place: place,
     check: check,
-    relation: relation
+    relation: relation,
+    rotate: rotate
   };
 }

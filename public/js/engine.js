@@ -24,7 +24,6 @@ OCULARIS.createEngine = function () {
         ENGINE.switchVR();
       });
 
-      // Set events
       return ENGINE;
     },
     switchVR: function () {
