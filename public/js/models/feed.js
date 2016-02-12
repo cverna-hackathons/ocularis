@@ -4,11 +4,26 @@
  * @param  {Function} callback
  */
 OCULARIS.model.feed = function (options) {
-  var ENGINE  = OCULARIS.engine;
-  var cache   = { elements: [] };
-  var feedLoading = false;
-  var feedActive  = true;
+  var components    = [];
+  var ENGINE        = OCULARIS.engine;
+  var cache         = { elements: [] };
+  var componentType = options.displayComponent;
+  var feedLoading   = false;
+  var feedActive    = true;
+  var cameraVicinity= 10;
+  // serves as a binding back from component
+  var componentModel= {};
   
+  // Initializes the model component
+  function init() {
+    console.log('init feed');
+    var component = OCULARIS.component[componentType]({ 
+      componentModel: componentModel
+    });
+    component.place();
+    components.push(component);
+  }
+
   // This function will load users preferred or default feed options
   function getUserFeedOptions (done) {
     return done(null, _.extend(
@@ -25,6 +40,10 @@ OCULARIS.model.feed = function (options) {
   }
 
   function checkComponentsRedraw() {
+    components.forEach(function(component) {
+      component.check();
+    });
+
     return;
   }
 
@@ -66,8 +85,10 @@ OCULARIS.model.feed = function (options) {
 
   return {
     load: loadElements,
+    components: components,
     active: feedActive,
-    checkUpdate: checkUpdate
+    checkUpdate: checkUpdate,
+    init: init
   };
 
 };

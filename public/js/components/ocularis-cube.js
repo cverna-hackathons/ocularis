@@ -1,52 +1,89 @@
-OCULARIS.component.cube = function(options, tweet) {
-  var material;
-  var options     = _.defaults(options || {}, {
+OCULARIS.component.cube = function(options) {
+  var ENGINE          = OCULARIS.engine;
+  var relation       = {
+    toCamera: {}    
+  };
+  var componentModel  = options.componentModel;
+  var options         = _.defaults(options || {}, {
+    vicinity: 15,
     size: {
       width: 4,
-      height: 8,
-      depth: 0.2
+      height: 4,
+      depth: 4
     },
     position: {
       x: 0,
       y: 0,
-      z: 0
+      z: 5
     },
     text: {
       font: "bold 10px Arial",
       color: "black"
     },
-    background: 0xeeeeee
+    colors: {
+      default: 0xbbbbbb,
+      close: 0xffffff,
+      active: 0xffcc00
+    },
+
+    resolution: {
+      x: 1024,
+      y: 1024
+    }
   });
-  var textResolution = { 
-    x: 512,
-    y: 512
-  }
-  var dynamicText = new THREEx.DynamicTexture(
-    textResolution.x, textResolution.y
+
+  var geometry = new THREE.BoxGeometry(
+    options.size.width, options.size.height, options.size.depth
   );
-  
-  dynamicText.context.font  = options.text.font;
-  dynamicText
-    .clear("white")
-    .drawText(
-      formatPrimaryText(), parseInt(textResolution.x * 0.1), 
-      parseInt(textResolution.y * 0.1), options.text.color
-    );
-  material = new THREE.MeshBasicMaterial({ 
-    color: options.background, map: dynamicText.texture
+  var material = new THREE.MeshBasicMaterial({ 
+    color: options.colors.default, vertexColors: THREE.FaceColors 
   });
+  var cube = new THREE.Mesh(geometry, material);
 
-  function formatPrimaryText() {
-    return (
-      tweet.user.name + ' (@' + tweet.user.screen_name + ')\n\r' + tweet.text
+  function place() {
+    OCULARIS.engine.scene.add(cube);
+    cube.position.x = options.position.x;
+    cube.position.y = options.position.y;
+    cube.position.z = options.position.z;
+  }
+
+  function setCameraRelation() {
+    relation.toCamera.facesTo = ENGINE.content.getFacesToCamera(cube);
+    _.extend(
+      relation.toCamera, 
+      ENGINE.content.getDistanceRelation(cube, ENGINE.camera, options.vicinity)
     );
   }
 
-  return OCULARIS.models.box({
-    x: options.position.x,
-    y: options.position.y,
-    z: options.position.z,
-    size: options.size,
-    material: material
-  });
+  function setOwnConditionals() {
+    if (relation.toCamera.isClose) {
+      cube.material.color.setHex(options.colors.close);
+      colorFacingSurface();
+    }
+    else {
+      cube.material.color.setHex(options.colors.default);
+    }
+  }
+
+  function colorFacingSurface() {
+    var facesTo = relation.toCamera.facesTo || [];
+    if (facesTo.length) {
+      facesTo.forEach(function(face) {
+        face.color.setHex(options.colors.active);
+      });
+      geometry.colorsNeedUpdate = true;
+    }
+  }
+
+  function check() {
+    setCameraRelation();
+    setOwnConditionals();
+  }
+
+  return {
+    object: cube,
+    place: place,
+    check: check,
+    relation: relation
+  };
 }

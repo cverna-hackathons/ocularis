@@ -21,9 +21,7 @@ module.exports = app => {
     var feedProvider = require(providerPath);
 
     if (typeof feedProvider === 'object') {
-      
       feedProvider.getElements(options, (err, elements) => {
-        console.log('feed 1')
         res.send({
           elements: elements,
           error: err
@@ -31,7 +29,6 @@ module.exports = app => {
       });
     }
     else {
-      console.log('feed')
       res.send({
         elements: [],
         error: 'Feed provider specified does not exist.'

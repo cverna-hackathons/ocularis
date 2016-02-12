@@ -46,18 +46,23 @@ OCULARIS.engine = (function() {
   };
 
   function getEventKeyDirection (event, trigger) {
-    // console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
+    console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
     var direction;
     switch (event.keyCode) {
+      // W-key
+      // ArrowUp
       case 38:
         direction = 'forward';
         break;
+      // ArrowDown
       case 40:
         direction = 'backward';
         break;
+      // ArrowLeft
       case 37:
         direction = 'left';
         break;
+      // ArrowRight
       case 39:
         direction = 'right';
         break;
