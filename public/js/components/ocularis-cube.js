@@ -66,7 +66,7 @@ OCULARIS.component.cube = function(options) {
     }
     if (cube.material.color.getHex() !== oldColor)
       return true;
-    else 
+    else
       return false;
   }
 
@@ -83,7 +83,10 @@ OCULARIS.component.cube = function(options) {
           change = true;
         }
       });
-      if (change) geometry.colorsNeedUpdate = true;
+      if (change) {
+        console.log('colorFacingSurface cube:', cube);
+        geometry.colorsNeedUpdate = true;
+      }
     }
 
     return change;

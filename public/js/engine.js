@@ -63,10 +63,12 @@ OCULARIS.createEngine = function () {
     if (objectOne && objectOne.geometry && objectOne.geometry.faces) {
       var faces = objectOne.geometry.faces;
       var cameraLookAt = new THREE.Vector3(0,0, -1);
+      var normalMatrix = new THREE.Matrix3().getNormalMatrix(objectOne.matrixWorld);
 
       cameraLookAt.applyQuaternion(ENGINE.camera.quaternion);
       faces.forEach(function(face) {
-        var radiansToLookAt = face.normal.angleTo(cameraLookAt);
+        var worldNormal = face.normal.clone().applyMatrix3(normalMatrix).normalize();
+        var radiansToLookAt = worldNormal.angleTo(cameraLookAt);
         // console.log('radiansToLookAt, face.normal, cameraLookAt:', radiansToLookAt, face.normal, cameraLookAt);
         if (aligned.value === radiansToLookAt) {
           aligned.faces.push(face);
