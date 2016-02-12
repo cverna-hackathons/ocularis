@@ -1,21 +1,15 @@
 OCULARIS.view = function () {
-  var ENGINE = OCULARIS.engine;
 
   function reset() {
-    ENGINE.camera       = OCULARIS.camera();
-    ENGINE.frameUpdate  = true;
-    if (ENGINE.VREnabled)
-      ENGINE.enableVR();
+    OCULARIS.engine.camera       = OCULARIS.camera();
+    OCULARIS.engine.frameUpdate  = true;
+    if (OCULARIS.engine.VREnabled)
+      OCULARIS.engine.enableVR();
     else
-      ENGINE.disableVR();
-  }
-
-  function closeTo(element) {
-    
+      OCULARIS.engine.disableVR();
   }
 
   return {
-    reset: reset,
-    closeTo: closeTo
+    reset: reset
   }
 };

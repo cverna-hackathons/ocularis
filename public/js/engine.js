@@ -1,12 +1,8 @@
-var OCULARIS = {
-  models: {},
-  twitter: {}
-};
-
-OCULARIS.engine = (function() {
+OCULARIS.createEngine = function () {
   var ENGINE = {
+    models: [],
     init: function () {
-      var box   = OCULARIS.models.box();
+      var redBox   = OCULARIS.component.pointer();
 
       ENGINE.VREnabled= false
       ENGINE.light    = OCULARIS.light();
@@ -15,26 +11,25 @@ OCULARIS.engine = (function() {
       ENGINE.motion   = OCULARIS.motion();
       ENGINE.draw     = OCULARIS.draw();
       ENGINE.view     = OCULARIS.view();
+      ENGINE.events   = OCULARIS.events();
 
-      ENGINE.view.reset();
-      ENGINE.scene.add(box);
-      ENGINE.scene.add(ENGINE.light);
-
-      //RENDER test tweet feed -> it will be triggered differently
-      OCULARIS.twitter.feed(function (err, objects) {
-        objects.forEach(function (obj) {
-          ENGINE.scene.add(obj);
-          ENGINE.frameUpdate = true;
-        });
+      OCULARIS.config.loadContentStructure(function() {
+        ENGINE.availableContent.models.forEach(initializeModel)
       });
 
-      $('#scene').html(ENGINE.renderer.domElement);
-      ENGINE.draw();
-      setTriggers();
+      ENGINE.scene.add(redBox);
+      ENGINE.scene.add(ENGINE.light);
+
+      ENGINE.events.addEventListener('enter', function(){
+        ENGINE.switchVR();
+      });
+
+      return ENGINE;
     },
     switchVR: function () {
       ENGINE.VREnabled = !ENGINE.VREnabled;
       ENGINE.view.reset();
+      console.log('switching to VR:', ENGINE.VREnabled)
     },
     enableVR: function () {
       ENGINE.VRControls = new THREE.VRControls(ENGINE.camera);
@@ -44,59 +39,78 @@ OCULARIS.engine = (function() {
     },
     disableVR: function () {
       ENGINE.VRControls = null;
-      ENGINE.VREffect   = null;      
+      ENGINE.VREffect   = null;
       ENGINE.renderer.setSize(window.innerWidth, window.innerHeight);
-    }
+    },
+    update: update,
+    getDistanceRelation: getDistanceRelation,
+    getFacesToCamera: getFacesToCamera
   };
 
-  function getEventKeyDirection (event, trigger) {
-    console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
-    var direction;
-    switch (event.keyCode) {
-      case 38:
-        direction = 'forward';
-        break;
-      case 40:
-        direction = 'backward';
-        break;
-      case 37:
-        direction = 'left';
-        break;
-      case 39:
-        direction = 'right';
-        break;
-      case 32:
-        OCULARIS.engine.resetView();
-        break;
-      case 13:
-        if (trigger === 'keyup') OCULARIS.engine.switchVR();
-        break;
+  function update() {
+    ENGINE.models.forEach(function(model) {
+      if (model.active && model.checkUpdate()) {
+        ENGINE.frameUpdate = true;
+      }
+    });
+  }
+
+  function getFacesToCamera(objectOne) {
+    // var mostAlignedFaces = [];
+    var aligned = { value: null, faces: [] };
+
+    if (objectOne && objectOne.geometry && objectOne.geometry.faces) {
+      var faces = objectOne.geometry.faces;
+      var cameraLookAt = new THREE.Vector3(0,0, -1);
+      var normalMatrix = new THREE.Matrix3().getNormalMatrix(objectOne.matrixWorld);
+
+      cameraLookAt.applyQuaternion(ENGINE.camera.quaternion);
+      faces.forEach(function(face) {
+        var worldNormal = face.normal.clone().applyMatrix3(normalMatrix).normalize();
+        var radiansToLookAt = worldNormal.angleTo(cameraLookAt);
+        // console.log('radiansToLookAt, face.normal, cameraLookAt:', radiansToLookAt, face.normal, cameraLookAt);
+        if (aligned.value === radiansToLookAt) {
+          aligned.faces.push(face);
+        }
+        else if (aligned.value === null || radiansToLookAt > aligned.value) {
+          aligned.value = radiansToLookAt;
+          aligned.faces = [face];
+        }
+      });
     }
-    return direction;
+    return aligned.faces;
   }
 
-  function trackKeys (event) {
-    var direction = getEventKeyDirection(event, 'keydown');
+  // Helpers
+  function getDistanceRelation(objectOne, objectTwo, vicinity) {
+    var relation       = {};
+    var objectOnePos   = objectOne.position;
+    var objectTwoPos   = objectTwo.position;
+    var distanceVec = new THREE.Vector3(
+      (objectOnePos.x - objectTwoPos.x),
+      (objectOnePos.y - objectTwoPos.y),
+      (objectOnePos.z - objectTwoPos.z)
+    );
 
-    if (direction && direction !== 'reset') {
-      ENGINE.motion.incite(direction);
+    relation.distanceVec = distanceVec;
+    relation.distance = objectOnePos.distanceTo(objectTwoPos);
+    relation.isClose = (relation.distance < vicinity);
+
+    return relation;
+  }
+
+  function initializeModel(model) {
+    var modelInstance;
+
+    if (
+      model.type && model.provider && model.displayComponent &&
+      typeof OCULARIS.model[model.type] === 'function'
+    ) {
+      modelInstance = OCULARIS.model[model.type](model);
+      ENGINE.models.push(modelInstance);
+      modelInstance.init();
     }
   }
 
-  function untrackKeys (event) {
-    var direction = getEventKeyDirection(event, 'keyup');
-
-    if (direction) {
-      ENGINE.motion.impede(direction);
-    }
-  }
-
-  function setTriggers () {
-    $("body").on("keypress", trackKeys);
-    $("body").on("keyup", untrackKeys);
-  }
-
-  return ENGINE;
-})();
-
-$(document).ready(OCULARIS.engine.init);
+  return ENGINE.init();
+};
