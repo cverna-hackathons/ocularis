@@ -73,7 +73,7 @@ OCULARIS.component.cube = function(options) {
   function colorFacingSurface() {
     var facesTo = relation.toCamera.facesTo || [];
     var change = false;
-    var oldColor; 
+    var oldColor;
 
     if (facesTo.length) {
       facesTo.forEach(function(face) {
@@ -96,7 +96,7 @@ OCULARIS.component.cube = function(options) {
     var change = false;
     if (setCameraRelation()) change = true;
     if (setOwnConditionals()) change = true;
-    
+
     return change;
   }
 
@@ -104,19 +104,39 @@ OCULARIS.component.cube = function(options) {
     var angle = Math.PI / 2;
     switch(direction) {
       case 'up':
-        cube.rotateX((-1) * angle);
+        rotateAnimation(-angle, 'x', 3);
         break;
       case 'down':
-        cube.rotateX(angle);
+        rotateAnimation(angle, 'x', 3);
         break;
       case 'right':
-        cube.rotateY(angle);
+        rotateAnimation(angle, 'y', 3);
         break;
       case 'left':
-        cube.rotateY((-1) * angle);
+        rotateAnimation(-angle, 'y', 3);
         break;
     }
-    OCULARIS.engine.frameUpdate = true;
+
+    function rotateAnimation(angle, axis, durationInSecs) {
+      var actualAngle = 0,
+          angleIncrement = angle / (durationInSecs * (1000 / 60));
+      var animationInterval = setInterval(function(){
+        if (Math.abs(actualAngle) > Math.abs(angle))
+          clearInterval(animationInterval);
+        else {
+          actualAngle += angleIncrement;
+          switch(axis) {
+            case 'x':
+              cube.rotateX(angleIncrement);
+              break;
+            case 'y':
+              cube.rotateY(angleIncrement);
+              break;
+          }
+        }
+        OCULARIS.engine.frameUpdate = true;
+      }, 1000 / 60);
+    }
   }
 
   return {
