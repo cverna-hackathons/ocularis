@@ -1,3 +1,5 @@
+'use strict'
+
 var express = require('express');
 var glob = require('glob');
 
@@ -23,7 +25,10 @@ module.exports = function(app, config) {
   app.set('view engine', 'handlebars');
 
   // app.use(favicon(config.root + '/public/img/favicon.ico'));
-  app.use(logger('dev'));
+  app.use(logger('dev', {
+    format: "dev",
+    skip: function (req, res) { return res.statusCode === 304; }
+  }));
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({
     extended: true
@@ -64,6 +69,8 @@ module.exports = function(app, config) {
       });
   });
 
-  app.listen(config.port);
+  app.listen(config.port, () => {
+    console.log(`OCULARIS Listening on port: ${config.port}.`);
+  });
 
 };

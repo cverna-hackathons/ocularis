@@ -1,4 +1,4 @@
-OCULARIS.models.box = function(opt) {
+OCULARIS.component.pointer = function(opt) {
 
   opt = _.defaults(opt || {}, {
     x: 0,
@@ -18,7 +18,6 @@ OCULARIS.models.box = function(opt) {
   box.position.x = opt.x;
   box.position.y = opt.y;
   box.position.z = opt.z;
-  box.position.y += (opt.size.height / 2);
 
   return box;
 };
