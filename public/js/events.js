@@ -88,6 +88,9 @@ OCULARIS.events = function() {
   setTriggers();
 
   return {
+    getListeners: function(){
+      return listeners;
+    },
     addEventListener: addEventListener,
     removeEventListener: removeEventListener
   };

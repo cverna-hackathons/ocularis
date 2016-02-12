@@ -100,10 +100,30 @@ OCULARIS.component.cube = function(options) {
     return change;
   }
 
+  function rotate(direction) {
+    var angle = Math.PI / 2;
+    switch(direction) {
+      case 'up':
+        cube.rotateX((-1) * angle);
+        break;
+      case 'down':
+        cube.rotateX(angle);
+        break;
+      case 'right':
+        cube.rotateY(angle);
+        break;
+      case 'left':
+        cube.rotateY((-1) * angle);
+        break;
+    }
+    OCULARIS.engine.frameUpdate = true;
+  }
+
   return {
     object: cube,
     place: place,
     check: check,
-    relation: relation
+    relation: relation,
+    rotate: rotate
   };
 }

@@ -23,6 +23,8 @@ OCULARIS.model.feed = function (options) {
     component.place();
     components.push(component);
     ENGINE.frameUpdate = true;
+
+    bindEventTriggers();
   }
 
   // This function will load users preferred or default feed options
@@ -88,6 +90,31 @@ OCULARIS.model.feed = function (options) {
         feedLoading = false;
         if (done) return done();
       });
+    });
+  }
+
+  /**
+   * Bind events for rotating cube.
+   */
+  function bindEventTriggers() {
+    OCULARIS.engine.events.addEventListener('forward', function(){
+      rotateCube('up');
+    });
+    OCULARIS.engine.events.addEventListener('backward', function(){
+      rotateCube('down');
+    });
+    OCULARIS.engine.events.addEventListener('left', function(){
+      rotateCube('left');
+    });
+    OCULARIS.engine.events.addEventListener('right', function(){
+      rotateCube('right');
+    });
+  }
+
+  function rotateCube(direction) {
+    components.forEach(function(component){
+      //TODO check if component has rotate
+      component.rotate(direction);
     });
   }
 
