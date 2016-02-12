@@ -37,15 +37,22 @@ OCULARIS.model.feed = function (options) {
   }
 
   function checkUpdate() {
-    return (needsLoad() ? loadElements() : checkComponentsRedraw());
+    if (needsLoad()) {
+      loadElements();
+      return false;
+    }
+    else {
+      return checkComponentsRedraw();
+    }  
   }
 
   function checkComponentsRedraw() {
+    var redraw = false;
     components.forEach(function(component) {
-      component.check();
+      if (component.check()) redraw = true;
     });
 
-    return;
+    return redraw;
   }
 
   function cacheElements(elements) {
