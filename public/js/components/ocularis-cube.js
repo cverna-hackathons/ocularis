@@ -65,22 +65,36 @@ OCULARIS.component.cube = function(options) {
       cube.material.color.setHex(options.colors.default);
     }
     if (cube.material.color.getHex() !== oldColor)
-      OCULARIS.engine.frameUpdate = true;
+      return true;
+    else 
+      return false;
   }
 
   function colorFacingSurface() {
     var facesTo = relation.toCamera.facesTo || [];
+    var change = false;
+    var oldColor; 
+
     if (facesTo.length) {
       facesTo.forEach(function(face) {
-        face.color.setHex(options.colors.active);
+        oldColor = face.color.getHex();
+        if (oldColor !== options.colors.active) {
+          face.color.setHex(options.colors.active);
+          change = true;
+        }
       });
-      geometry.colorsNeedUpdate = true;
+      if (change) geometry.colorsNeedUpdate = true;
     }
+
+    return change;
   }
 
   function check() {
-    setCameraRelation();
-    setOwnConditionals();
+    var change = false;
+    if (setCameraRelation()) change = true;
+    if (setOwnConditionals()) change = true;
+    
+    return change;
   }
 
   function rotate(direction) {

@@ -49,7 +49,9 @@ OCULARIS.createEngine = function () {
 
   function update() {
     ENGINE.models.forEach(function(model) {
-      if (model.active) model.checkUpdate();
+      if (model.active && model.checkUpdate()) {
+        ENGINE.frameUpdate = true;
+      }
     });
   }
 
