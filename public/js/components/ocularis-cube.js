@@ -56,6 +56,7 @@ OCULARIS.component.cube = function(options) {
   }
 
   function setOwnConditionals() {
+    var oldColor = cube.material.color.getHex();
     if (relation.toCamera.isClose) {
       cube.material.color.setHex(options.colors.close);
       colorFacingSurface();
@@ -63,6 +64,8 @@ OCULARIS.component.cube = function(options) {
     else {
       cube.material.color.setHex(options.colors.default);
     }
+    if (cube.material.color.getHex() !== oldColor)
+      OCULARIS.engine.frameUpdate = true;
   }
 
   function colorFacingSurface() {
