@@ -1,7 +1,7 @@
 OCULARIS.component.cube = function(options) {
   var ENGINE          = OCULARIS.engine;
   var relation       = {
-    toCamera: {}    
+    toCamera: {}
   };
   var componentModel  = options.componentModel;
   var options         = _.defaults(options || {}, {
@@ -35,8 +35,8 @@ OCULARIS.component.cube = function(options) {
   var geometry = new THREE.BoxGeometry(
     options.size.width, options.size.height, options.size.depth
   );
-  var material = new THREE.MeshBasicMaterial({ 
-    color: options.colors.default, vertexColors: THREE.FaceColors 
+  var material = new THREE.MeshBasicMaterial({
+    color: options.colors.default, vertexColors: THREE.FaceColors
   });
   var cube = new THREE.Mesh(geometry, material);
 
@@ -48,10 +48,10 @@ OCULARIS.component.cube = function(options) {
   }
 
   function setCameraRelation() {
-    relation.toCamera.facesTo = ENGINE.content.getFacesToCamera(cube);
+    relation.toCamera.facesTo = OCULARIS.engine.getFacesToCamera(cube);
     _.extend(
-      relation.toCamera, 
-      ENGINE.content.getDistanceRelation(cube, ENGINE.camera, options.vicinity)
+      relation.toCamera,
+      OCULARIS.engine.getDistanceRelation(cube, ENGINE.camera, options.vicinity)
     );
   }
 

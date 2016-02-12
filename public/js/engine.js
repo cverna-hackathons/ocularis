@@ -11,6 +11,7 @@ OCULARIS.createEngine = function () {
       ENGINE.motion   = OCULARIS.motion();
       ENGINE.draw     = OCULARIS.draw();
       ENGINE.view     = OCULARIS.view();
+      ENGINE.events   = OCULARIS.events();
 
       OCULARIS.config.loadContentStructure(function() {
         ENGINE.availableContent.models.forEach(initializeModel)
@@ -18,6 +19,10 @@ OCULARIS.createEngine = function () {
 
       ENGINE.scene.add(redBox);
       ENGINE.scene.add(ENGINE.light);
+
+      ENGINE.events.addEventListener('enter', function(){
+        ENGINE.switchVR();
+      });
 
       // Set events
       return ENGINE;
