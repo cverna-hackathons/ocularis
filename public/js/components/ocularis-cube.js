@@ -198,20 +198,27 @@ OCULARIS.component.cube = function(options) {
     OCULARIS.engine.frameUpdate = true;
   }
 
+  var animationInterval;
   function rotateAnimation(angle, axis, durationInSecs) {
-    var actualAngle = 0;
-    var angleIncrement = angle / (durationInSecs * (1000 / 60));
-    var animationInterval = setInterval(function () {
-      if (Math.abs(actualAngle) > Math.abs(angle))
+    var actualAngle = 0,
+        angleIncrement = angle / (durationInSecs * (1000 / 60));
+    if (animationInterval) {
+      //previous animation not finished -> throw away this animation
+      return;
+    }
+    animationInterval = setInterval(function(){
+      if (Math.abs(actualAngle) > Math.abs(angle)) {
         clearInterval(animationInterval);
+        animationInterval = null;
+      }
       else {
         actualAngle += angleIncrement;
         switch(axis) {
           case 'x':
-            cube.rotateX(angleIncrement);
+            Transforms.rotate(cube, 'x', angleIncrement);
             break;
           case 'y':
-            cube.rotateY(angleIncrement);
+            Transforms.rotate(cube, 'y', angleIncrement);
             break;
         }
       }
