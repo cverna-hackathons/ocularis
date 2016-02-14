@@ -35,16 +35,35 @@ OCULARIS.component.cube = function(options) {
   var geometry = new THREE.BoxGeometry(
     options.size.width, options.size.height, options.size.depth
   );
-  var material = new THREE.MeshBasicMaterial({
-    color: options.colors.default, vertexColors: THREE.FaceColors
-  });
-  var cube = new THREE.Mesh(geometry, material);
+  var cubeMaterials = buildMaterials();
+  var materialProperties = {
+    indexOfFacing: null,
+    facingLoaded: false
+  }; 
+
+  // new THREE.MeshBasicMaterial({
+  //   color: options.colors.default, vertexColors: THREE.FaceColors
+  // });
+  var cube = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(cubeMaterials));
+
+  function buildMaterials() {
+    var materials = [];
+
+    for (var materialIdx = 0; materialIdx < 6; materialIdx++) {
+      materials.push(new THREE.MeshBasicMaterial({
+        color: options.colors.default,
+        map: applyTexture('init!', 512)
+      }));
+    }
+    return materials;
+  }
 
   function place() {
     OCULARIS.engine.scene.add(cube);
     cube.position.x = options.position.x;
     cube.position.y = options.position.y;
     cube.position.z = options.position.z;
+    console.log('cube', cube);
   }
 
   function setCameraRelation() {
@@ -56,37 +75,94 @@ OCULARIS.component.cube = function(options) {
   }
 
   function setOwnConditionals() {
-    var oldColor = cube.material.color.getHex();
+    // var oldColor = cube.material.color.getHex();
     if (relation.toCamera.isClose) {
-      cube.material.color.setHex(options.colors.close);
-      colorFacingSurface();
+      return applyFacingMaterials();
     }
     else {
-      cube.material.color.setHex(options.colors.default);
+      return checkDefaultMaterials();
     }
-    if (cube.material.color.getHex() !== oldColor)
-      return true;
-    else
-      return false;
   }
 
-  function colorFacingSurface() {
+  function checkDefaultMaterials() {
+    return false;
+  }
+
+  function checkSizeOnScreen() {
+
+    // My FOV in radians (comes from default 90 degrees in camera.js, may want to parametrize this)
+    var camera = OCULARIS.engine.camera;
+    var FOVrad =  (camera.fov * Math.PI / 180);
+    var distance = (
+      camera.position.z - cube.position.z - (options.size.height / 2)
+    );
+
+    return parseInt(
+      options.size.height / (
+        2 * Math.tan(FOVrad / 2) * distance
+      ) * window.innerHeight
+    );
+  }
+
+  // Add texture here to return for material
+  function applyTexture(text, size) {
+    return createtexture(text, 20, 50, size);
+  }
+
+  function createtexture(text, x, y, size) {
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    var texture = new THREE.Texture(canvas);
+
+    canvas.width = size;
+    canvas.height = size;
+
+    // if x isnt provided
+    if( x === undefined || x === null ){
+      var textSize  = context.measureText(text);
+      x = (canvas.width - textSize.width) / 2;
+    }
+    // actually draw the text
+    context.fillStyle = 'white';
+    context.font  = "bold 50px Arial"
+    context.fillText(text, x, y);
+    // make the texture as .needsUpdate
+    texture.needsUpdate  = true;
+    // for chained API
+    return texture;
+  };
+
+  function applyFacingMaterials() {
     var faceIndices = relation.toCamera.faceIndices || [];
     var change = false;
-    var oldColor;
+    var facingCamera;
 
     if (faceIndices.length) {
-      geometry.faces.forEach(function(face, faceIndex) {
-        oldColor = face.color.getHex();
-        newColor = options.colors[(faceIndices.indexOf(faceIndex) > -1 ? 'active' : 'close')]
-        if (oldColor !== newColor) {
-          face.color.setHex(newColor);
-          change = true;
-        }
-      });
-      if (change) {
-        console.log('colorFacingSurface cube, faceIndices:', cube, faceIndices);
-        geometry.colorsNeedUpdate = true;
+      var oldColor, newColor;
+      var faceIndex = faceIndices[0];
+      var facingMaterialIdx = cube.geometry.faces[faceIndex].materialIndex;
+
+      if (facingMaterialIdx !== materialProperties.indexOfFacing) {
+        materialProperties.facingLoaded = false;
+      }
+      if (facingMaterialIdx >= 0) {
+        cubeMaterials.forEach(function(material, materialIdx) {
+          oldColor = material.color.getHex();
+          facingCamera = (materialIdx === facingMaterialIdx);
+          newColor = options.colors[(facingCamera ? 'active' : 'close')];
+          
+          if (
+            !materialProperties.facingLoaded && facingCamera && 
+            materialProperties.indexOfFacing !== materialIdx
+          ) {
+            material.color.setHex(newColor);
+            console.log('checkSizeOnScreen', checkSizeOnScreen());
+            material.map = applyTexture('active!', 512);
+            materialProperties.indexOfFacing = facingMaterialIdx;
+            materialProperties.facingLoaded = true;
+            change = true;
+          }
+        });
       }
     }
 
@@ -123,9 +199,9 @@ OCULARIS.component.cube = function(options) {
   }
 
   function rotateAnimation(angle, axis, durationInSecs) {
-    var actualAngle = 0,
-        angleIncrement = angle / (durationInSecs * (1000 / 60));
-    var animationInterval = setInterval(function(){
+    var actualAngle = 0;
+    var angleIncrement = angle / (durationInSecs * (1000 / 60));
+    var animationInterval = setInterval(function () {
       if (Math.abs(actualAngle) > Math.abs(angle))
         clearInterval(animationInterval);
       else {
