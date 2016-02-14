@@ -11,5 +11,5 @@ OCULARIS.view = function () {
 
   return {
     reset: reset
-  }
+  };
 };

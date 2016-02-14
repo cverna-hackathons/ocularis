@@ -7,14 +7,14 @@ OCULARIS.component.cube = function(options) {
   var options         = _.defaults(options || {}, {
     vicinity: 25,
     size: {
-      width: 4,
-      height: 4,
-      depth: 4
+      width: 12,
+      height: 12,
+      depth: 12
     },
     position: {
       x: 0,
       y: 0,
-      z: 5
+      z: 0
     },
     text: {
       font: "bold 10px Arial",

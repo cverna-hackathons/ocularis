@@ -7,7 +7,7 @@ OCULARIS.camera = function () {
     TARGET_DISTANCE: 1000,
     INIT_POS: {
       x: 0,
-      y: 4,
+      y: 2,
       z: 20
     }
   };
