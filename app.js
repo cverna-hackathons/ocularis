@@ -1,6 +1,6 @@
 var express = require('express');
-var config = require('./config/config');
+var config = require('./app/lib/config');
 var app = express();
 
-require('./config/express')(app, config);
+require('./app/lib/express')(app, config);
 
