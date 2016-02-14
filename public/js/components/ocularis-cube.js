@@ -7,14 +7,14 @@ OCULARIS.component.cube = function(options) {
   var options         = _.defaults(options || {}, {
     vicinity: 25,
     size: {
-      width: 4,
-      height: 4,
-      depth: 4
+      width: 12,
+      height: 12,
+      depth: 12
     },
     position: {
       x: 0,
       y: 0,
-      z: 5
+      z: 0
     },
     text: {
       font: "bold 10px Arial",
@@ -48,7 +48,7 @@ OCULARIS.component.cube = function(options) {
   }
 
   function setCameraRelation() {
-    relation.toCamera.facesTo = OCULARIS.engine.getFacesToCamera(cube);
+    relation.toCamera.faceIndices = OCULARIS.engine.getFacesToCamera(cube);
     _.extend(
       relation.toCamera,
       OCULARIS.engine.getDistanceRelation(cube, ENGINE.camera, options.vicinity)
@@ -71,20 +71,21 @@ OCULARIS.component.cube = function(options) {
   }
 
   function colorFacingSurface() {
-    var facesTo = relation.toCamera.facesTo || [];
+    var faceIndices = relation.toCamera.faceIndices || [];
     var change = false;
-    var oldColor; 
+    var oldColor;
 
-    if (facesTo.length) {
-      facesTo.forEach(function(face) {
+    if (faceIndices.length) {
+      geometry.faces.forEach(function(face, faceIndex) {
         oldColor = face.color.getHex();
-        if (oldColor !== options.colors.active) {
-          face.color.setHex(options.colors.active);
+        newColor = options.colors[(faceIndices.indexOf(faceIndex) > -1 ? 'active' : 'close')]
+        if (oldColor !== newColor) {
+          face.color.setHex(newColor);
           change = true;
         }
       });
       if (change) {
-        console.log('colorFacingSurface cube:', cube);
+        console.log('colorFacingSurface cube, faceIndices:', cube, faceIndices);
         geometry.colorsNeedUpdate = true;
       }
     }
@@ -96,7 +97,7 @@ OCULARIS.component.cube = function(options) {
     var change = false;
     if (setCameraRelation()) change = true;
     if (setOwnConditionals()) change = true;
-    
+
     return change;
   }
 
@@ -104,19 +105,49 @@ OCULARIS.component.cube = function(options) {
     var angle = Math.PI / 2;
     switch(direction) {
       case 'up':
-        cube.rotateX((-1) * angle);
+        rotateAnimation(-angle, 'x', 3);
         break;
       case 'down':
-        cube.rotateX(angle);
+        rotateAnimation(angle, 'x', 3);
         break;
       case 'right':
-        cube.rotateY(angle);
+        rotateAnimation(angle, 'y', 3);
         break;
       case 'left':
-        cube.rotateY((-1) * angle);
+        rotateAnimation(-angle, 'y', 3);
         break;
     }
+
+    check();
     OCULARIS.engine.frameUpdate = true;
+  }
+
+  var animationInterval;
+  function rotateAnimation(angle, axis, durationInSecs) {
+    var actualAngle = 0,
+        angleIncrement = angle / (durationInSecs * (1000 / 60));
+    if (animationInterval) {
+      //previous animation not finished -> throw away this animation
+      return;
+    }
+    animationInterval = setInterval(function(){
+      if (Math.abs(actualAngle) > Math.abs(angle)) {
+        clearInterval(animationInterval);
+        animationInterval = null;
+      }
+      else {
+        actualAngle += angleIncrement;
+        switch(axis) {
+          case 'x':
+            Transforms.rotate(cube, 'x', angleIncrement);
+            break;
+          case 'y':
+            Transforms.rotate(cube, 'y', angleIncrement);
+            break;
+        }
+      }
+      OCULARIS.engine.frameUpdate = true;
+    }, 1000 / 60);
   }
 
   return {
