@@ -35,7 +35,7 @@ THREEx.DynamicTexture	= function(width, height){
  */
 THREEx.DynamicTexture.prototype.clear = function(fillStyle){
 	// depends on fillStyle
-	if( fillStyle !== undefined ){
+	if( fillStyle !== undefined ) {
 		this.context.fillStyle	= fillStyle
 		this.context.fillRect(0,0,this.canvas.width, this.canvas.height)
 	}else{

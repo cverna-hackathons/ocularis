@@ -123,7 +123,7 @@ OCULARIS.component.cube = function(options) {
       x = (canvas.width - textSize.width) / 2;
     }
     // actually draw the text
-    context.fillStyle = 'white';
+    context.fillStyle = 'black';
     context.font  = "bold 50px Arial"
     context.fillText(text, x, y);
     // make the texture as .needsUpdate
@@ -157,10 +157,13 @@ OCULARIS.component.cube = function(options) {
           ) {
             material.color.setHex(newColor);
             console.log('checkSizeOnScreen', checkSizeOnScreen());
-            material.map = applyTexture('active!', 512);
+            material.map = applyTexture('active! (idx: ' + materialIdx + ')', 512);
             materialProperties.indexOfFacing = facingMaterialIdx;
             materialProperties.facingLoaded = true;
             change = true;
+          }
+          else if (materialProperties.facingLoaded && !facingCamera) {
+            material.map = applyTexture('back to school! (idx: ' + materialIdx + ')', 512);
           }
         });
       }
