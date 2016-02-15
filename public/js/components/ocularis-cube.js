@@ -35,11 +35,23 @@ OCULARIS.component.cube = function(options) {
   var geometry = new THREE.BoxGeometry(
     options.size.width, options.size.height, options.size.depth
   );
-  var cubeMaterials = buildMaterials();
   var materialProperties = {
     indexOfFacing: null,
-    facingLoaded: false
+    facingLoaded: false,
+    unloadedIdxs: [],
+    unloadedIdxPos: function(materialIdx) {
+      return materialProperties.unloadedIdxs.indexOf(materialIdx);
+    },
+    removeFromUnloaded: function(materialIdx) {
+      var position = materialProperties.unloadedIdxPos(materialIdx);
+      if (position > -1) materialProperties.unloadedIdxs.splice(position, 1);
+    },
+    addToUnloaded: function(materialIdx) {
+      var position = materialProperties.unloadedIdxPos(materialIdx);
+      if (position === -1) materialProperties.unloadedIdxs.push(materialIdx);
+    }
   }; 
+  var cubeMaterials = buildMaterials();
 
   // new THREE.MeshBasicMaterial({
   //   color: options.colors.default, vertexColors: THREE.FaceColors
@@ -54,6 +66,7 @@ OCULARIS.component.cube = function(options) {
         color: options.colors.default,
         map: applyTexture('init!', 512)
       }));
+      materialProperties.unloadedIdxs.push(materialIdx);
     }
     return materials;
   }
@@ -123,7 +136,7 @@ OCULARIS.component.cube = function(options) {
       x = (canvas.width - textSize.width) / 2;
     }
     // actually draw the text
-    context.fillStyle = 'black';
+    context.fillStyle = "#ff0000";
     context.font  = "bold 50px Arial"
     context.fillText(text, x, y);
     // make the texture as .needsUpdate
@@ -138,7 +151,7 @@ OCULARIS.component.cube = function(options) {
     var facingCamera;
 
     if (faceIndices.length) {
-      var oldColor, newColor;
+      var oldColor, newColor, unloadedMaterial;
       var faceIndex = faceIndices[0];
       var facingMaterialIdx = cube.geometry.faces[faceIndex].materialIndex;
 
@@ -152,7 +165,7 @@ OCULARIS.component.cube = function(options) {
           newColor = options.colors[(facingCamera ? 'active' : 'close')];
           
           if (
-            !materialProperties.facingLoaded && facingCamera && 
+            !materialProperties.facingLoaded && facingCamera &&
             materialProperties.indexOfFacing !== materialIdx
           ) {
             material.color.setHex(newColor);
@@ -160,10 +173,18 @@ OCULARIS.component.cube = function(options) {
             material.map = applyTexture('active! (idx: ' + materialIdx + ')', 512);
             materialProperties.indexOfFacing = facingMaterialIdx;
             materialProperties.facingLoaded = true;
+            materialProperties.removeFromUnloaded(materialIdx);
             change = true;
           }
-          else if (materialProperties.facingLoaded && !facingCamera) {
-            material.map = applyTexture('back to school! (idx: ' + materialIdx + ')', 512);
+          else if (
+            materialProperties.facingLoaded && !facingCamera &&
+            materialProperties.unloadedIdxPos(materialIdx) === -1
+          ) {
+            material.map = applyTexture(
+              'back to school! (idx: ' + materialIdx + ')', 512
+            );
+            materialProperties.addToUnloaded(materialIdx);
+            change = true;
           }
         });
       }
