@@ -1,6 +1,6 @@
 OCULARIS.component.cube = function(options) {
   var ENGINE          = OCULARIS.engine;
-  var mapSizes        = [8, 9, 10, 11].map(function(powerTo) { 
+  var mapSizes        = [8, 9, 10, 11].map(function(powerTo) {
     return Math.pow(2, powerTo);
   });
   var relation       = {
@@ -146,8 +146,8 @@ OCULARIS.component.cube = function(options) {
   // Add texture here to return for material
   function buildTextureFromText(text, size) {
     console.log('buildTextureFromText | size:', size);
-    var texture = new THREE.Texture(getCanvasWithTextWrap(text, { 
-      maxWidth: size 
+    var texture = new THREE.Texture(getCanvasWithTextWrap(text, {
+      maxWidth: size
     }));
     texture.needsUpdate  = true;
     return texture;
@@ -172,7 +172,7 @@ OCULARIS.component.cube = function(options) {
           mapSize = getMapSizeCloseTo(checkSizeOnScreen());
           facingCamera = (materialIdx === facingMaterialIdx);
           newColor = options.colors[(facingCamera ? 'active' : 'close')];
-          
+
           if (
             !materialProperties.facingLoaded && facingCamera &&
             materialProperties.indexOfFacing !== materialIdx &&
@@ -181,7 +181,7 @@ OCULARIS.component.cube = function(options) {
             material.color.setHex(newColor);
             material.map = buildTextureFromText(
               (
-                'active! (idx: ' + materialIdx + ') - ' + 
+                'active! (idx: ' + materialIdx + ') - ' +
                 componentModel.nextElement.text
               ), mapSize
             );
@@ -210,18 +210,18 @@ OCULARIS.component.cube = function(options) {
   function nextElementText() {
     return ;
   }
- 
+
   function getCanvasWithTextWrap(text, options) {
     console.log('getCanvasWithTextWrap | options:', options);
     var i, j, lines, lineSpacing;
     var canvas  = document.createElement('canvas');
     var ctx     = canvas.getContext('2d');
-    var width   = 0; 
+    var width   = 0;
     var fontSize    = (options.fontSize || 50);
     var fontFace    = (options.fontFace || 'Arial');
     var maxWidth    = (options.maxWidth || 250);
     var fontColor   = (options.fontColor || "#000000");
-    
+
     do {
       adjustToFontSize();
       fontSize--;
@@ -250,7 +250,7 @@ OCULARIS.component.cube = function(options) {
     function adjustToFontSize() {
       var textCopy = '' + text;
       var result;
-      
+
       lineSpacing = parseInt(fontSize / 2);
       projectedHeight = lineSpacing;
       lines = new Array();
@@ -260,12 +260,12 @@ OCULARIS.component.cube = function(options) {
 
       while (textCopy.length) {
         for(i=textCopy.length; ctx.measureText(textCopy.substr(0, i)).width > maxWidth; i--);
-      
+
         result = textCopy.substr(0,i);
-      
+
         if (i !== textCopy.length)
           for( j=0; result.indexOf(" ",j) !== -1; j=result.indexOf(" ",j)+1 );
-        
+
         lines.push(result.substr(0, j || result.length));
         width = Math.max(width, ctx.measureText(lines[ lines.length-1 ]).width);
         textCopy = textCopy.substr(lines[ lines.length-1 ].length, textCopy.length);
@@ -295,10 +295,10 @@ OCULARIS.component.cube = function(options) {
     var angle = Math.PI / 2;
     var rotationDuration = 2;
     var rotationOptions = rotationMap[direction];
-    
+
     if (rotationOptions) {
       rotateAnimation(
-        (rotationOptions[0] * angle), rotationOptions[1], rotationDuration, 
+        (rotationOptions[0] * angle), rotationOptions[1], rotationDuration,
       function(started) {
         if (started) {
           updateRotationTracking(started, direction);
@@ -322,7 +322,7 @@ OCULARIS.component.cube = function(options) {
     }
   }
 
-  // Schedules a rotation interval which executes it 
+  // Schedules a rotation interval which executes it
   // until the desired angle has been reached
   // We leave animation interval outside the scope for later possible export
   var animationInterval;
@@ -337,22 +337,30 @@ OCULARIS.component.cube = function(options) {
     }
     console.log('animationInterval started');
     animationInterval = setInterval(function(){
-      if (Math.abs(actualAngle) >= Math.abs(angle)) {
+
+      actualAngle += angleIncrement;
+      var diff = Math.abs(actualAngle) - Math.abs(angle);
+      var ending = false;
+      if (diff > 0) {
+        ending = true;
+        angleIncrement += (angle < 0) ? diff : -diff;
+      }
+
+      switch(axis) {
+        case 'x':
+          Transforms.rotate(cube, 'x', angleIncrement);
+          break;
+        case 'y':
+          Transforms.rotate(cube, 'y', angleIncrement);
+          break;
+      }
+
+      if (ending) {
         clearInterval(animationInterval);
         animationInterval = null;
         if (stopped) return stopped(true);
       }
-      else {
-        actualAngle += angleIncrement;
-        switch(axis) {
-          case 'x':
-            Transforms.rotate(cube, 'x', angleIncrement);
-            break;
-          case 'y':
-            Transforms.rotate(cube, 'y', angleIncrement);
-            break;
-        }
-      }
+      
       OCULARIS.engine.frameUpdate = true;
     }, 1000 / 60);
     if (started) started(true);
