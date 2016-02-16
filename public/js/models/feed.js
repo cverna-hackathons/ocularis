@@ -19,16 +19,18 @@ OCULARIS.model.feed = function (options) {
       if (options.type === 'shift') {
         switch(options.direction) {
           case 'forward':
-            prepAnotherELement(1);
+            prepAnotherElement(1);
             break;
           case 'backward':
-            prepAnotherELement(-1);
+            prepAnotherElement(-1);
             break;
           case 'forward':
-            prepAnotherELement(1);
+            // TODO: Go to shift provider channel
+            prepAnotherElement(1);
             break;
           case 'left':
-            prepAnotherELement(-1);
+            // TODO: Go to shift provider channel
+            prepAnotherElement(-1);
             break;
         }
       }
@@ -49,7 +51,7 @@ OCULARIS.model.feed = function (options) {
     });
   }
 
-  function prepAnotherELement(shift) {
+  function prepAnotherElement(shift) {
     var currentPos = getElementCacheIdx();
     var nextPos    = (currentPos + shift);
     var nextElement= cache.elements[nextPos];
@@ -57,6 +59,7 @@ OCULARIS.model.feed = function (options) {
     if (nextElement) {
       console.log('getAnotherELement | nextElement:', nextElement);
       componentModel.nextElement = nextElement;
+      componentModel.currentElementID = nextElement.id;
     }
     else {
       console.log('getAnotherELement | not found in cache (currentPos), cache.elements:', currentPos, cache.elements);
