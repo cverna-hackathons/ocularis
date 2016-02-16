@@ -228,7 +228,7 @@ OCULARIS.component.cube = function(options) {
     } while (fontSize > 0 && projectedHeight > options.maxWidth);
 
     // Calculate canvas size, add margin
-    ctx.canvas.width  = lineSpacing + width;
+    ctx.canvas.width  = options.maxWidth;
 
     // removed fontSize + (( fontSize + 5 ) * lines.length)
     // since we are in a cube, we use the same height and width
@@ -259,7 +259,7 @@ OCULARIS.component.cube = function(options) {
       ctx.font   = (fontSize + 'px ' + fontFace);
 
       while (textCopy.length) {
-        for(i=textCopy.length; ctx.measureText(textCopy.substr(0, i)).width > maxWidth; i--);
+        for(i=textCopy.length; (ctx.measureText(textCopy.substr(0, i)).width + lineSpacing) > maxWidth; i--);
       
         result = textCopy.substr(0,i);
       
