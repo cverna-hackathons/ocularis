@@ -1,13 +1,13 @@
 OCULARIS.camera = function () {
 
   var config = {
-    FOV: 75,
+    FOV: 90,
     CUTOFF: 0.1,
     ASPECT_RATIO: window.innerWidth / window.innerHeight,
     TARGET_DISTANCE: 1000,
     INIT_POS: {
       x: 0,
-      y: 4,
+      y: 2,
       z: 20
     }
   };

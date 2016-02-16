@@ -16,7 +16,7 @@ module.exports = app => {
     var options = req.body;
     var providerName = options.provider;
     var providerPath = path.normalize(
-      __dirname + './../lib/feed_providers/' + providerName
+      __dirname + './../lib/providers/' + providerName
     );
     var feedProvider = require(providerPath);
 
