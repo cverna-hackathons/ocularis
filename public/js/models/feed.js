@@ -12,7 +12,79 @@ OCULARIS.model.feed = function (options) {
   var feedActive    = true;
   var cameraVicinity= 10;
   // serves as a binding back from component
-  var componentModel= {};
+  var componentModel= {
+    eventStart: function(options) {
+      console.log('eventStart', options);
+      componentModel.nextElement = null;
+      if (options.type === 'shift') {
+        switch(options.direction) {
+          case 'forward':
+            prepAnotherELement(1);
+            break;
+          case 'backward':
+            prepAnotherELement(-1);
+            break;
+          case 'forward':
+            prepAnotherELement(1);
+            break;
+          case 'left':
+            prepAnotherELement(-1);
+            break;
+        }
+      }
+    },
+    eventStop: function(options) {
+      console.log('eventStop', options);
+    },
+    nextElement: null,
+    currentElementID: null,
+    componentLoading: feedLoading
+  };
+
+  function getElementCacheIdx(elementID) {
+    elementID = elementID || componentModel.currentElementID;
+
+    return _.findIndex(cache.elements, function(element) {
+      return (element.id === elementID);
+    });
+  }
+
+  function prepAnotherELement(shift) {
+    var currentPos = getElementCacheIdx();
+    var nextPos    = (currentPos + shift);
+    var nextElement= cache.elements[nextPos];
+
+    if (nextElement) {
+      console.log('getAnotherELement | nextElement:', nextElement);
+      componentModel.nextElement = nextElement;
+    }
+    else {
+      console.log('getAnotherELement | not found in cache (currentPos), cache.elements:', currentPos, cache.elements);
+    }
+    return;
+  }
+
+  function shiftProviderChannel(direction) {
+
+  }
+
+  function loadElements(done) {
+    feedLoading = true;
+    console.log('loadElements');
+    getUserFeedOptions(function(errors, userFeedOptions) {
+      $.post("/feed", userFeedOptions, function(response) {
+        console.log('loadElements | response:', response);
+        if (response && response.elements) {
+          cacheElements(response.elements);
+        }
+        else {
+          console.log('ERROR: Loading feed data | response:', response);
+        }
+        feedLoading = false;
+        if (done) return done();
+      });
+    });
+  }
 
   // Initializes the model component
   function init() {
@@ -59,6 +131,7 @@ OCULARIS.model.feed = function (options) {
 
   function cacheElements(elements) {
     var updateSize = 0;
+    var firstLoad   = (!cache.lastUpdate && elements.length);
 
     elements.forEach(function(elem) {
       var dupe = _.findWhere(cache.elements, { id: elem.id });
@@ -70,27 +143,13 @@ OCULARIS.model.feed = function (options) {
         updateSize++;
         cache.elements.push(elem);
       }
-    })
+    });
+    if (firstLoad) {
+      componentModel.currentElementID = elements[0].id;
+      componentModel.nextElement = elements[0];
+    }
     cache.lastUpdate = Date.now();
     cache.lastUpdateSize = updateSize;
-  }
-
-  function loadElements(done) {
-    feedLoading = true;
-    console.log('loadElements')
-    getUserFeedOptions(function(errors, userFeedOptions) {
-      $.post("/feed", userFeedOptions, function(response) {
-        console.log('loadElements | response:', response);
-        if (response && response.elements) {
-          cacheElements(response.elements);
-        }
-        else {
-          console.log('ERROR: Loading feed data | response:', response);
-        }
-        feedLoading = false;
-        if (done) return done();
-      });
-    });
   }
 
   /**
@@ -98,10 +157,10 @@ OCULARIS.model.feed = function (options) {
    */
   function bindEventTriggers() {
     OCULARIS.engine.events.addEventListener('forward', function () {
-      rotateCube('up');
+      rotateCube('forward');
     });
     OCULARIS.engine.events.addEventListener('backward', function () {
-      rotateCube('down');
+      rotateCube('backward');
     });
     OCULARIS.engine.events.addEventListener('left', function () {
       rotateCube('left');

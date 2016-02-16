@@ -1,8 +1,8 @@
 {
   "twitter": {
-    "key": "XXX",
-    "secret": "XXX",
-    "token_key": "XXX",
-    "token_secret": "XXX"
+    "consumer_key": "xxx",
+    "consumer_secret": "xxx",
+    "access_token_key": "xxx",
+    "access_token_secret": "xxx"
   }
 }

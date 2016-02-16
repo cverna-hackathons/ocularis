@@ -1,6 +1,9 @@
 OCULARIS.createEngine = function () {
   var ENGINE = {
     models: [],
+
+    // Initializes instances of scene essentials, renderer, view and events
+    // Loads provided [optional] content structure
     init: function () {
       var redBox   = OCULARIS.component.pointer();
 
@@ -20,9 +23,7 @@ OCULARIS.createEngine = function () {
       ENGINE.scene.add(redBox);
       ENGINE.scene.add(ENGINE.light);
 
-      ENGINE.events.addEventListener('enter', function(){
-        ENGINE.switchVR();
-      });
+      ENGINE.events.addEventListener('enter', ENGINE.switchVR);
 
       return ENGINE;
     },
@@ -47,6 +48,9 @@ OCULARIS.createEngine = function () {
     getFacesToCamera: getFacesToCamera
   };
 
+  // Loops through all active models plugged in via configuration
+  // Checks the models for update
+  // Sets frameUpdate to true if so
   function update() {
     ENGINE.models.forEach(function(model) {
       if (model.active && model.checkUpdate()) {
@@ -55,8 +59,8 @@ OCULARIS.createEngine = function () {
     });
   }
 
+  // Returns indices of object geometry faces that are facing the OCULARIS camera 
   function getFacesToCamera(objectOne) {
-    // var mostAlignedFaces = [];
     var aligned = { value: null, faceIndices: [] };
 
     if (objectOne && objectOne.geometry && objectOne.geometry.faces) {
@@ -66,7 +70,8 @@ OCULARIS.createEngine = function () {
 
       cameraLookAt.applyQuaternion(ENGINE.camera.quaternion);
       faces.forEach(function(face, faceIndex) {
-        var worldNormal = face.normal.clone().applyMatrix3(normalMatrix).normalize();
+        var worldNormal = 
+          face.normal.clone().applyMatrix3(normalMatrix).normalize();
         var radiansToLookAt = worldNormal.angleTo(cameraLookAt);
         
         if (aligned.value === radiansToLookAt) {
@@ -81,7 +86,9 @@ OCULARIS.createEngine = function () {
     return aligned.faceIndices;
   }
 
-  // Helpers
+  // Returns object containing information about the distance 
+  // between two objects and relative closeness boolean 
+  // based on provided vicinity argument
   function getDistanceRelation(objectOne, objectTwo, vicinity) {
     var relation       = {};
     var objectOnePos   = objectOne.position;
@@ -99,6 +106,8 @@ OCULARIS.createEngine = function () {
     return relation;
   }
 
+  // Initializes the model instance into separate 
+  // OCULARIS model map under OCULARIS.model[modelType]
   function initializeModel(model) {
     var modelInstance;
 
@@ -112,5 +121,7 @@ OCULARIS.createEngine = function () {
     }
   }
 
+  // Initialization is executed immediately upon loading and 
+  // returns the ENGINE itself
   return ENGINE.init();
 };
