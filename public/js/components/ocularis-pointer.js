@@ -2,12 +2,12 @@ OCULARIS.component.pointer = function(opt) {
 
   opt = _.defaults(opt || {}, {
     x: 0,
-    y: 0,
-    z: 0,
+    y: -1,
+    z: -1,
     size: {
-      width: 1,
-      height: 1,
-      depth: 1
+      width: 0.1,
+      height: 0.1,
+      depth: 0.1
     },
     material: new THREE.MeshBasicMaterial({color: 'red'})
   });
