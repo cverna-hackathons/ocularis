@@ -7,7 +7,7 @@ OCULARIS.createEngine = function () {
     init: function () {
       var redBox   = OCULARIS.component.pointer();
 
-      ENGINE.VREnabled= false
+      ENGINE.VREnabled= true;
       ENGINE.light    = OCULARIS.light();
       ENGINE.scene    = OCULARIS.scene();
       ENGINE.renderer = OCULARIS.renderer();
@@ -23,20 +23,30 @@ OCULARIS.createEngine = function () {
       ENGINE.scene.add(redBox);
       ENGINE.scene.add(ENGINE.light);
 
-      ENGINE.events.addEventListener('enter', ENGINE.switchVR);
+      // ENGINE.events.addEventListener('enter', ENGINE.switchVR);
+      // ENGINE.events.addEventListener('z', ENGINE.resetVRSensor);
 
       return ENGINE;
     },
     switchVR: function () {
       ENGINE.VREnabled = !ENGINE.VREnabled;
       ENGINE.view.reset();
-      console.log('switching to VR:', ENGINE.VREnabled)
+      console.log('switching VR:', ENGINE.VREnabled);
     },
     enableVR: function () {
       ENGINE.VRControls = new THREE.VRControls(ENGINE.camera);
       ENGINE.VREffect   = new THREE.VREffect(ENGINE.renderer);
-
       ENGINE.VREffect.setSize(window.innerWidth, window.innerHeight);
+      ENGINE.VRManager = new WebVRManager(ENGINE.renderer, ENGINE.VREffect, {
+        hideButton: false,
+        isUndistorted: false
+      });
+      // ENGINE.resetVRSensor();
+    },
+    resetVRSensor: function () {
+      if (ENGINE.VREnabled) {
+        ENGINE.VRControls.resetSensor();
+      }
     },
     disableVR: function () {
       ENGINE.VRControls = null;

@@ -1,9 +1,10 @@
 OCULARIS.draw = function () {
-  function draw () {
+  function draw (timeStamp) {
     var engine = OCULARIS.engine;
     requestAnimationFrame(draw);
     if (engine.VREnabled) {
       engine.VRControls.update();
+      engine.VRManager.render(engine.scene, engine.camera, timeStamp);
       engine.VREffect.render(engine.scene, engine.camera);
       engine.motion.update();
       engine.update();

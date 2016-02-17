@@ -1,6 +1,6 @@
 OCULARIS.component.cube = function(options) {
   var ENGINE          = OCULARIS.engine;
-  var mapSizes        = [8, 9, 10, 11].map(function(powerTo) {
+  var mapSizes        = [8, 9, 10].map(function(powerTo) {
     return Math.pow(2, powerTo);
   });
   var relation       = {
@@ -16,14 +16,14 @@ OCULARIS.component.cube = function(options) {
   var options         = _.defaults(options || {}, {
     vicinity: 25,
     size: {
-      width: 12,
-      height: 12,
-      depth: 12
+      width: 1,
+      height: 1,
+      depth: 1
     },
     position: {
       x: 0,
       y: 0,
-      z: 0
+      z: -2
     },
     text: {
       font: "bold 10px Arial",
@@ -65,10 +65,6 @@ OCULARIS.component.cube = function(options) {
     }
   };
   var cubeMaterials = buildMaterials();
-
-  // new THREE.MeshBasicMaterial({
-  //   color: options.colors.default, vertexColors: THREE.FaceColors
-  // });
   var cube = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(cubeMaterials));
 
   function getMapSizeCloseTo(size) {
@@ -88,9 +84,9 @@ OCULARIS.component.cube = function(options) {
     var materials = [];
 
     for (var materialIdx = 0; materialIdx < 6; materialIdx++) {
-      materials.push(new THREE.MeshBasicMaterial({
+      materials.push(new THREE.MeshLambertMaterial({
         color: options.colors.default,
-        map: buildTextureFromText('To load!', 1024)
+        map: buildTextureFromText('To load!', 512)
       }));
       materialProperties.unloadedIdxs.push(materialIdx);
     }
@@ -143,16 +139,6 @@ OCULARIS.component.cube = function(options) {
     );
   }
 
-  // Add texture here to return for material
-  function buildTextureFromText(text, size) {
-    console.log('buildTextureFromText | size:', size);
-    var texture = new THREE.Texture(getCanvasWithTextWrap(text, {
-      maxWidth: size
-    }));
-    texture.needsUpdate  = true;
-    return texture;
-  }
-
   function applyFacingMaterials() {
     var faceIndices = relation.toCamera.faceIndices || [];
     var change = false;
@@ -194,6 +180,7 @@ OCULARIS.component.cube = function(options) {
             materialProperties.facingLoaded && !facingCamera &&
             materialProperties.unloadedIdxPos(materialIdx) === -1
           ) {
+            material.color.setHex(newColor);
             material.map = buildTextureFromText(
               'Unloaded stuff! (idx: ' + materialIdx + ')', mapSize
             );
@@ -207,8 +194,15 @@ OCULARIS.component.cube = function(options) {
     return change;
   }
 
-  function nextElementText() {
-    return ;
+
+  // Add texture here to return for material
+  function buildTextureFromText(text, size) {
+    console.log('buildTextureFromText | size:', size);
+    var texture = new THREE.Texture(getCanvasWithTextWrap(text, {
+      maxWidth: size
+    }));
+    texture.needsUpdate  = true;
+    return texture;
   }
 
   function getCanvasWithTextWrap(text, options) {
@@ -221,21 +215,27 @@ OCULARIS.component.cube = function(options) {
     var fontFace    = (options.fontFace || 'Arial');
     var maxWidth    = (options.maxWidth || 250);
     var fontColor   = (options.fontColor || "#000000");
+    var background = (options.background || "#ffffff");
+
+
+    ctx.canvas.width  = options.maxWidth;
+    ctx.canvas.height = ctx.canvas.width;
 
     do {
+      // Calculate canvas size, add margin
+
       adjustToFontSize();
       fontSize--;
     } while (fontSize > 0 && projectedHeight > options.maxWidth);
 
-    // Calculate canvas size, add margin
-    ctx.canvas.width  = options.maxWidth;
 
     // removed fontSize + (( fontSize + 5 ) * lines.length)
     // since we are in a cube, we use the same height and width
-    ctx.canvas.height = ctx.canvas.width;
     ctx.font   = fontSize + "px Arial";
 
     // Render
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.fillStyle = fontColor;
     j = lines.length;
 

@@ -30,13 +30,9 @@ OCULARIS.events = function() {
       case 13:
         key = 'enter';
         break;
-      // case 32:
-      //   if (trigger === 'keyup') ENGINE.view.reset();
-      //   break;
-      // // Enter press
-      // case 13:
-      //   if (trigger === 'keyup') OCULARIS.engine.switchVR();
-      //   break;
+      case 90:
+        key = 'z';
+        break;
     }
     return key;
   }
