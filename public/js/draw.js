@@ -6,7 +6,6 @@ OCULARIS.draw = function () {
       engine.VRControls.update();
       engine.VRManager.render(engine.scene, engine.camera, timeStamp);
       engine.VREffect.render(engine.scene, engine.camera);
-      engine.motion.update();
       engine.update();
     }
     else {

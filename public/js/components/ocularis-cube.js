@@ -21,8 +21,8 @@ OCULARIS.component.cube = function(options) {
       depth: 1
     },
     position: {
-      x: 0,
-      y: 0,
+      x: -1,
+      y: -1,
       z: -2
     },
     text: {
@@ -39,12 +39,7 @@ OCULARIS.component.cube = function(options) {
       y: 1024
     }
   });
-  var rotationMap = {
-    forward: [-1, 'x'],
-    backward: [1, 'x'],
-    right: [1, 'y'],
-    left: [-1, 'y']
-  }
+  
   var geometry = new THREE.BoxGeometry(
     options.size.width, options.size.height, options.size.depth
   );
@@ -63,6 +58,26 @@ OCULARIS.component.cube = function(options) {
       var position = materialProperties.unloadedIdxPos(materialIdx);
       if (position === -1) materialProperties.unloadedIdxs.push(materialIdx);
     }
+  };
+  var rotationMap = {
+    forward: [-1, 'x', 0],
+    backward: [1, 'x', 0],
+    right: [1, 'y', 0],
+    left: [-1, 'y', 0],
+    revolutions: {
+      x: 0,
+      y: 0,
+      z: 0
+    },
+    placement: {
+      right: 0,
+      left: 1,
+      top: 2,
+      bottom: 3,
+      front: 4,
+      back: 5
+    },
+    initial: ['right', 'left', 'top', 'bottom', 'front', 'back']
   };
   var cubeMaterials = buildMaterials();
   var cube = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(cubeMaterials));
@@ -84,13 +99,101 @@ OCULARIS.component.cube = function(options) {
     var materials = [];
 
     for (var materialIdx = 0; materialIdx < 6; materialIdx++) {
-      materials.push(new THREE.MeshLambertMaterial({
+      var side;
+      var material = new THREE.MeshLambertMaterial({
         color: options.colors.default,
         map: buildTextureFromText('To load!', 512)
-      }));
+      });
+      materials.push(material);
+
+      switch (materialIdx) {
+        case 0:
+          side = 'right';
+          break;
+        case 1:
+          side = 'left';
+          break;
+        case 2:
+          side = 'top';
+          break;
+        case 3:
+          side = 'bottom';
+          break;
+        case 4:
+          side = 'front';
+          break;
+        case 5:
+          side = 'back';
+          break;
+      }
+      rotationMap.placement[side] = materialIdx;
       materialProperties.unloadedIdxs.push(materialIdx);
     }
     return materials;
+  }
+
+  function rotateTextures(rotationAxis, angleMultiplier) {
+    var along;
+    var across;
+    var prevPlacement = _.clone(rotationMap.placement);
+
+    switch (rotationAxis) {
+      case 'x':
+        along = ['back', 'top', 'front', 'bottom'];
+        across = ['right', 'left'];
+        break;
+      case 'y':
+        along = ['front', 'right', 'back', 'left'];
+        across = ['top', 'bottom'];
+        break;
+      case 'z':
+        along = ['top', 'right', 'bottom', 'left'];
+        across = ['front', 'back'];
+        break;
+    }
+
+    var newAlong = along.slice(0);
+    var mover = newAlong[angleMultiplier > 0 ? 'shift' : 'pop']();
+
+    newAlong[angleMultiplier > 0 ? 'push' : 'unshift'](mover);
+    rotationMap.revolutions[rotationAxis] += angleMultiplier;
+
+    newAlong.forEach(function(newSide, sideIdx) {
+      var materialSideToMove = along[sideIdx];
+      var materialIdx = prevPlacement[materialSideToMove];
+      var initialSide = rotationMap[materialIdx];
+
+      console.log('materialSideToMove, materialIdx, newSide:', materialSideToMove, materialIdx, newSide);
+      rotationMap.placement[newSide] = materialIdx;
+    });
+
+
+    across.forEach(function(side, tempIdx) {
+      var angle = (Math.PI / 2 * Math.pow(angleMultiplier, tempIdx));
+      rotateTexture(side, angle);
+    });
+
+    console.log('rotateTextures | rotationAxis, angleMultiplier, newAlong, rotationMap:',
+      rotationAxis, angleMultiplier, newAlong, rotationMap, across);
+
+
+  }
+
+  function rotateTexture(side, angle) {
+    var materialIdx = rotationMap.placement[side];
+    var material    = cubeMaterials[materialIdx];
+
+    if (material && material.map && material.map.image) {
+      var ctx = material.map.image.getContext('2d');
+
+      console.log('rotateTexture | side, angle, ctx:', side, angle, ctx)
+      if (ctx && angle !== 0) {
+        ctx.rotate(angle);
+        material.map.needsUpdate  = true;
+      }
+    }
+    
+
   }
 
   function place() {
@@ -110,7 +213,6 @@ OCULARIS.component.cube = function(options) {
   }
 
   function setOwnConditionals() {
-    // var oldColor = cube.material.color.getHex();
     if (relation.toCamera.isClose) {
       return applyFacingMaterials();
     }
@@ -145,7 +247,7 @@ OCULARIS.component.cube = function(options) {
     var facingCamera;
 
     if (faceIndices.length) {
-      var oldColor, newColor, unloadedMaterial, mapSize;
+      var oldColor, newColor, unloadedMaterial;
       var faceIndex = faceIndices[0];
       var facingMaterialIdx = cube.geometry.faces[faceIndex].materialIndex;
 
@@ -155,7 +257,6 @@ OCULARIS.component.cube = function(options) {
       if (facingMaterialIdx >= 0) {
         cubeMaterials.forEach(function(material, materialIdx) {
           oldColor = material.color.getHex();
-          mapSize = getMapSizeCloseTo(checkSizeOnScreen());
           facingCamera = (materialIdx === facingMaterialIdx);
           newColor = options.colors[(facingCamera ? 'active' : 'close')];
 
@@ -164,12 +265,13 @@ OCULARIS.component.cube = function(options) {
             materialProperties.indexOfFacing !== materialIdx &&
             componentModel.nextElement
           ) {
+            console.log('facing')
             material.color.setHex(newColor);
             material.map = buildTextureFromText(
               (
                 'active! (idx: ' + materialIdx + ') - ' +
                 componentModel.nextElement.text
-              ), mapSize
+              ), getMapSizeCloseTo(checkSizeOnScreen())
             );
             materialProperties.indexOfFacing = facingMaterialIdx;
             materialProperties.facingLoaded = true;
@@ -180,9 +282,11 @@ OCULARIS.component.cube = function(options) {
             materialProperties.facingLoaded && !facingCamera &&
             materialProperties.unloadedIdxPos(materialIdx) === -1
           ) {
+            console.log('unloaded')
             material.color.setHex(newColor);
             material.map = buildTextureFromText(
-              'Unloaded stuff! (idx: ' + materialIdx + ')', mapSize
+              'Unloaded stuff! (idx: ' + materialIdx + ')', 
+              getMapSizeCloseTo(checkSizeOnScreen())
             );
             materialProperties.addToUnloaded(materialIdx);
             change = true;
@@ -215,7 +319,7 @@ OCULARIS.component.cube = function(options) {
     var fontFace    = (options.fontFace || 'Arial');
     var maxWidth    = (options.maxWidth || 250);
     var fontColor   = (options.fontColor || "#000000");
-    var background = (options.background || "#ffffff");
+    var background  = (options.background || "#ffffff");
 
 
     ctx.canvas.width  = options.maxWidth;
@@ -284,20 +388,32 @@ OCULARIS.component.cube = function(options) {
     return change;
   }
 
-  function updateRotationTracking(inProgress, direction) {
-    relation.toSpace.rotation.inProgress = inProgress;
+  function updateRotationTracking(started, direction) {
+
+    relation.toSpace.rotation.inProgress = started;
     relation.toSpace.rotation.direction = direction;
+
+    if (started) {
+      var rotationOptions = rotationMap[direction];
+      var angleMultiplier = rotationOptions[0];
+      var rotationAxis    = rotationOptions[1];
+      console.log('updateRotationTracking | started, direction:', started, direction)
+      rotateTextures(rotationAxis, angleMultiplier);
+    }
   }
+
+  
 
   // Triggers rotation based on direction provided and passes the done callback
   function rotate(direction) {
     var angle = Math.PI / 2;
     var rotationDuration = 2;
     var rotationOptions = rotationMap[direction];
+    var relativeAngle = (rotationOptions[0] * angle);
 
     if (rotationOptions) {
       rotateAnimation(
-        (rotationOptions[0] * angle), rotationOptions[1], rotationDuration,
+        relativeAngle, rotationOptions[1], rotationDuration,
       function(started) {
         if (started) {
           updateRotationTracking(started, direction);
@@ -314,6 +430,7 @@ OCULARIS.component.cube = function(options) {
             type: 'shift',
             direction: direction
           });
+          console.log(cube);
         }
       });
       check();
@@ -335,7 +452,7 @@ OCULARIS.component.cube = function(options) {
       return;
     }
     console.log('animationInterval started');
-    animationInterval = setInterval(function(){
+    animationInterval = setInterval(function (){
 
       actualAngle += angleIncrement;
       var diff = Math.abs(actualAngle) - Math.abs(angle);

@@ -23,9 +23,6 @@ OCULARIS.createEngine = function () {
       ENGINE.scene.add(redBox);
       ENGINE.scene.add(ENGINE.light);
 
-      // ENGINE.events.addEventListener('enter', ENGINE.switchVR);
-      // ENGINE.events.addEventListener('z', ENGINE.resetVRSensor);
-
       return ENGINE;
     },
     switchVR: function () {
@@ -41,7 +38,6 @@ OCULARIS.createEngine = function () {
         hideButton: false,
         isUndistorted: false
       });
-      // ENGINE.resetVRSensor();
     },
     resetVRSensor: function () {
       if (ENGINE.VREnabled) {
