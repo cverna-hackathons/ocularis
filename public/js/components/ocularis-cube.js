@@ -23,7 +23,7 @@ OCULARIS.component.cube = function(options) {
     position: {
       x: -1,
       y: -1,
-      z: -2
+      z: -2.5
     },
     text: {
       font: "bold 10px Arial",
@@ -77,6 +77,7 @@ OCULARIS.component.cube = function(options) {
       front: 4,
       back: 5
     },
+    angles: [0, 0, 0, 0, 0, 0],
     initial: ['right', 'left', 'top', 'bottom', 'front', 'back']
   };
   var cubeMaterials = buildMaterials();
@@ -169,8 +170,11 @@ OCULARIS.component.cube = function(options) {
 
 
     across.forEach(function(side, tempIdx) {
-      var angle = (Math.PI / 2 * Math.pow(angleMultiplier, tempIdx));
-      rotateTexture(side, angle);
+      var angle = -(Math.PI / 2 * Math.pow(angleMultiplier, tempIdx));
+      var materialIdx = rotationMap.placement[side];
+
+      rotationMap.angles[materialIdx] += angle;
+      rotateTexture(side, angle, materialIdx);
     });
 
     console.log('rotateTextures | rotationAxis, angleMultiplier, newAlong, rotationMap:',
@@ -179,20 +183,38 @@ OCULARIS.component.cube = function(options) {
 
   }
 
-  function rotateTexture(side, angle) {
+  function rotateTexture(side, angle, idx) {
     var materialIdx = rotationMap.placement[side];
     var material    = cubeMaterials[materialIdx];
 
     if (material && material.map && material.map.image) {
-      var ctx = material.map.image.getContext('2d');
+      var canvas = material.map.image;
+      var ctx = canvas.getContext('2d');
 
-      console.log('rotateTexture | side, angle, ctx:', side, angle, ctx)
       if (ctx && angle !== 0) {
+        console.log('rotateTexture | side, angle, ctx:', side, angle, ctx);
+
+        console.log('ctx.currentTransform', ctx.currentTransform)
+        var tempCanvas = document.createElement('canvas');
+        var tempCtx = tempCanvas.getContext('2d');
+        var size = canvas.width;
+        
+        tempCanvas.width = size;
+        tempCanvas.height = size;
+        tempCtx.drawImage(canvas, 0, 0, size, size);
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.save();
+        ctx.translate(size / 2, size / 2);
         ctx.rotate(angle);
+        ctx.translate(-size / 2, -size / 2);
+        ctx.drawImage(tempCanvas, 0, 0, size, size);
+        ctx.restore();
         material.map.needsUpdate  = true;
       }
     }
-    
+
+    cube.geometry.faceVertexUvs[0] = [];
 
   }
 
@@ -273,6 +295,7 @@ OCULARIS.component.cube = function(options) {
                 componentModel.nextElement.text
               ), getMapSizeCloseTo(checkSizeOnScreen())
             );
+
             materialProperties.indexOfFacing = facingMaterialIdx;
             materialProperties.facingLoaded = true;
             materialProperties.removeFromUnloaded(materialIdx);
@@ -348,6 +371,8 @@ OCULARIS.component.cube = function(options) {
         lines[i], lineSpacing, ((fontSize + lineSpacing) * (i + 1))
       );
     }
+
+
 
     return canvas;
 
