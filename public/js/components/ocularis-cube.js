@@ -156,6 +156,7 @@ OCULARIS.component.cube = function(options) {
     var newAlong = along.slice(0);
     var mover = newAlong[angleMultiplier > 0 ? 'shift' : 'pop']();
 
+    console.log('rotateTextures | mover:', mover);
     newAlong[angleMultiplier > 0 ? 'push' : 'unshift'](mover);
     rotationMap.revolutions[rotationAxis] += angleMultiplier;
 
@@ -170,11 +171,11 @@ OCULARIS.component.cube = function(options) {
 
 
     across.forEach(function(side, tempIdx) {
-      var angle = -(Math.PI / 2 * Math.pow(angleMultiplier, tempIdx));
+      var angle = (Math.PI / 2 * (angleMultiplier));
       var materialIdx = rotationMap.placement[side];
 
       rotationMap.angles[materialIdx] += angle;
-      rotateTexture(side, angle, materialIdx);
+      rotateTexture(angle, materialIdx);
     });
 
     console.log('rotateTextures | rotationAxis, angleMultiplier, newAlong, rotationMap:',
@@ -183,8 +184,7 @@ OCULARIS.component.cube = function(options) {
 
   }
 
-  function rotateTexture(side, angle, idx) {
-    var materialIdx = rotationMap.placement[side];
+  function rotateTexture(angle, materialIdx) {
     var material    = cubeMaterials[materialIdx];
 
     if (material && material.map && material.map.image) {
@@ -192,9 +192,6 @@ OCULARIS.component.cube = function(options) {
       var ctx = canvas.getContext('2d');
 
       if (ctx && angle !== 0) {
-        console.log('rotateTexture | side, angle, ctx:', side, angle, ctx);
-
-        console.log('ctx.currentTransform', ctx.currentTransform)
         var tempCanvas = document.createElement('canvas');
         var tempCtx = tempCanvas.getContext('2d');
         var size = canvas.width;
@@ -269,7 +266,7 @@ OCULARIS.component.cube = function(options) {
     var facingCamera;
 
     if (faceIndices.length) {
-      var oldColor, newColor, unloadedMaterial;
+      var oldColor, newColor, unloadedMaterial, angle;
       var faceIndex = faceIndices[0];
       var facingMaterialIdx = cube.geometry.faces[faceIndex].materialIndex;
 
@@ -281,6 +278,7 @@ OCULARIS.component.cube = function(options) {
           oldColor = material.color.getHex();
           facingCamera = (materialIdx === facingMaterialIdx);
           newColor = options.colors[(facingCamera ? 'active' : 'close')];
+          angle = rotationMap.angles[materialIdx];
 
           if (
             !materialProperties.facingLoaded && facingCamera &&
@@ -299,6 +297,7 @@ OCULARIS.component.cube = function(options) {
             materialProperties.indexOfFacing = facingMaterialIdx;
             materialProperties.facingLoaded = true;
             materialProperties.removeFromUnloaded(materialIdx);
+            rotateTexture(angle, materialIdx);
             change = true;
           }
           else if (
@@ -312,6 +311,7 @@ OCULARIS.component.cube = function(options) {
               getMapSizeCloseTo(checkSizeOnScreen())
             );
             materialProperties.addToUnloaded(materialIdx);
+            rotateTexture(angle, materialIdx);
             change = true;
           }
         });
