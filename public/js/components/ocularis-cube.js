@@ -489,10 +489,10 @@ OCULARIS.component.cube = function(options) {
 
       switch(axis) {
         case 'x':
-          Transforms.rotate(cube, 'x', angleIncrement);
+          OCULARIS.Transforms.rotate(cube, 'x', angleIncrement);
           break;
         case 'y':
-          Transforms.rotate(cube, 'y', angleIncrement);
+          OCULARIS.Transforms.rotate(cube, 'y', angleIncrement);
           break;
       }
 

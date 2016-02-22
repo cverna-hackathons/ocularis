@@ -1,4 +1,5 @@
-var Transforms = {
+OCULARIS.Transforms = {
+
   /**
    * Rotate object around world axis.
    * @param  {THREE.object} object
