@@ -32,8 +32,6 @@ export default function() {
 
   var camera = null;
 
-  // init();
-
   function init() {
     view = View(this);
     events = Events();
@@ -47,6 +45,7 @@ export default function() {
   function switchVR() {
     VREnabled = !VREnabled;
     view.reset();
+    console.log('Switching VR');
   }
 
   function enableVR() {

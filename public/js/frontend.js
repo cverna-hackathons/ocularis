@@ -200,8 +200,6 @@ function Engine() {
 
   var camera = null;
 
-  // init();
-
   function init() {
     view = View(this);
     events = Events();
@@ -215,6 +213,7 @@ function Engine() {
   function switchVR() {
     VREnabled = !VREnabled;
     view.reset();
+    console.log('Switching VR');
   }
 
   function enableVR() {
