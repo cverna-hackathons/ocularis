@@ -10,13 +10,16 @@ import View from './view.js';
 import Events from './events.js';
 import VRHandlers_ from './vr-handlers.js';
 
+//Test fixture
+import DummyBox from '../components/dummy-box.js';
+
 export default function() {
 
   var context = this;
 
   var models = [];
 
-  var VREnabled = false;
+  var VREnabled = true;
 
   var scene = Scene();
 
@@ -36,6 +39,7 @@ export default function() {
     view = View(this);
     events = Events();
     scene.add(Light());
+    scene.add(DummyBox());
   }
 
   function draw() {
