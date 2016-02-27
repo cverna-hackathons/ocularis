@@ -1,3 +1,16 @@
-import { dummyTest } from './helpers/transforms.js';
+import Engine from './world/engine.js';
 
-dummyTest();
+function init() {
+  WebVRConfig = {
+    ORCE_ENABLE_VR: false
+  };
+
+  var engine = Engine();
+  engine.init();
+
+  $('#scene').html(engine.getRenderer().domElement);
+  engine.getView().reset();
+  engine.draw();
+}
+
+$(document).ready(init);

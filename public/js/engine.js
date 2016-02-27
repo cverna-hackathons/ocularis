@@ -65,7 +65,7 @@ OCULARIS.createEngine = function () {
     });
   }
 
-  // Returns indices of object geometry faces that are facing the OCULARIS camera 
+  // Returns indices of object geometry faces that are facing the OCULARIS camera
   function getFacesToCamera(objectOne) {
     var aligned = { value: null, faceIndices: [] };
 
@@ -76,10 +76,10 @@ OCULARIS.createEngine = function () {
 
       cameraLookAt.applyQuaternion(ENGINE.camera.quaternion);
       faces.forEach(function(face, faceIndex) {
-        var worldNormal = 
+        var worldNormal =
           face.normal.clone().applyMatrix3(normalMatrix).normalize();
         var radiansToLookAt = worldNormal.angleTo(cameraLookAt);
-        
+
         if (aligned.value === radiansToLookAt) {
           aligned.faceIndices.push(faceIndex);
         }
@@ -92,8 +92,8 @@ OCULARIS.createEngine = function () {
     return aligned.faceIndices;
   }
 
-  // Returns object containing information about the distance 
-  // between two objects and relative closeness boolean 
+  // Returns object containing information about the distance
+  // between two objects and relative closeness boolean
   // based on provided vicinity argument
   function getDistanceRelation(objectOne, objectTwo, vicinity) {
     var relation       = {};
@@ -112,7 +112,7 @@ OCULARIS.createEngine = function () {
     return relation;
   }
 
-  // Initializes the model instance into separate 
+  // Initializes the model instance into separate
   // OCULARIS model map under OCULARIS.model[modelType]
   function initializeModel(model) {
     var modelInstance;
@@ -127,7 +127,7 @@ OCULARIS.createEngine = function () {
     }
   }
 
-  // Initialization is executed immediately upon loading and 
+  // Initialization is executed immediately upon loading and
   // returns the ENGINE itself
   return ENGINE.init();
 };
