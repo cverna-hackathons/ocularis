@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "nodemon app.js && npm run watch:js",
+    "start": "parallelshell 'nodemon app.js' 'npm run watch:js'",
     "prebuild:js": "rimraf public/js/frontend.js",
     "build:js": "rollup -i ./frontend/app.js > tmp.js && babel --presets es2015 --out-file ./public/js/frontend.js < tmp.js",
     "postbuild:js": "rimraf tmp.js",
@@ -22,6 +22,7 @@
     "method-override": "~2.3.0",
     "morgan": "~1.5.0",
     "nodemon": "^1.8.1",
+    "parallelshell": "^2.0.0",
     "pg": "~4.3.0",
     "pg-hstore": "2.3.2",
     "rollup": "^0.25.4",
