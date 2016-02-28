@@ -1,3 +1,4 @@
-config/apis.json
-config/environments.json
+app/config/apis.json
+app/config/environments.json
+app/config/database.json
 node_modules/
