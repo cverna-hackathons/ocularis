@@ -1,13 +1,14 @@
-OCULARIS.component.pointer = function(opt) {
-
+export default function(opt) {
   opt = _.defaults(opt || {}, {
-    x: 0,
-    y: -1,
-    z: -1,
     size: {
-      width: 0.1,
-      height: 0.1,
-      depth: 0.1
+      width: 1,
+      height: 1,
+      depth: 1
+    },
+    position: {
+      x: -1,
+      y: -1,
+      z: -2.5
     },
     material: new THREE.MeshBasicMaterial({color: 'red'})
   });
@@ -15,9 +16,9 @@ OCULARIS.component.pointer = function(opt) {
   var geometry = new THREE.CubeGeometry(opt.size.width, opt.size.height, opt.size.depth);
   var box = new THREE.Mesh(geometry, opt.material);
 
-  box.position.x = opt.x;
-  box.position.y = opt.y;
-  box.position.z = opt.z;
+  box.position.x = opt.position.x;
+  box.position.y = opt.position.y;
+  box.position.z = opt.position.z;
 
   return box;
-};
+}

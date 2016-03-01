@@ -1,5 +1,4 @@
-OCULARIS.events = function() {
-
+export default function() {
   var listeners = {};
 
   function getEventKeyDirection (event, trigger) {
@@ -90,4 +89,4 @@ OCULARIS.events = function() {
     addEventListener: addEventListener,
     removeEventListener: removeEventListener
   };
-};
+}
