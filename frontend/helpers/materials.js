@@ -10,14 +10,19 @@ export function createCubeMaterials(options) {
     var materialOptions = {
       color: options.color,
       map: buildTextureFromText(options.text, 512)
-    }
+    };
     materials.push(new THREE.MeshBasicMaterial(materialOptions));
   }
   return materials;
 }
 
-// Add texture here to return for material
-function buildTextureFromText(text, size) {
+/**
+ * Create texture from canvas with text wrap
+ * @param  {String} Text to render into texture
+ * @param  {Number} Size for texture (has to be power of 2)
+ * @return {THREE.Texture} Can be assigned as a material.map
+ */
+export function buildTextureFromText(text, size) {
 
   var texture = new THREE.Texture(getCanvasWithTextWrap(text, {
     maxWidth: size
@@ -26,6 +31,12 @@ function buildTextureFromText(text, size) {
   return texture;
 }
 
+/**
+ * Create canvas with text filled within width / height boundaries
+ * @param  {String} Text to render into texture
+ * @param  {Object} fontSize, fontColor, maxWidth, background
+ * @return {Canvas element} Can be assigned as a material.map
+ */
 function getCanvasWithTextWrap(text, options) {
 
   var i, j, lines, lineSpacing, projectedHeight;

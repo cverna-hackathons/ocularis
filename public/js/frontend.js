@@ -51,7 +51,12 @@ function createCubeMaterials(options) {
   return materials;
 }
 
-// Add texture here to return for material
+/**
+ * Create texture from canvas with text wrap
+ * @param  {String} Text to render into texture
+ * @param  {Number} Size for texture (has to be power of 2)
+ * @return {THREE.Texture} Can be assigned as a material.map
+ */
 function buildTextureFromText(text, size) {
 
   var texture = new THREE.Texture(getCanvasWithTextWrap(text, {
@@ -61,6 +66,12 @@ function buildTextureFromText(text, size) {
   return texture;
 }
 
+/**
+ * Create canvas with text filled within width / height boundaries
+ * @param  {String} Text to render into texture
+ * @param  {Object} fontSize, fontColor, maxWidth, background
+ * @return {Canvas element} Can be assigned as a material.map
+ */
 function getCanvasWithTextWrap(text, options) {
 
   var i, j, lines, lineSpacing, projectedHeight;
@@ -124,12 +135,17 @@ function getCanvasWithTextWrap(text, options) {
   }
 }
 
+/**
+ * Construct the component and return exposed functions and objects
+ * @param  {Object} size: Object, position: Object
+ * @return {Object} object: THREE.js Group
+ */
 function Cube(opt) {
 
   var defined = {
     'version': 1,
     'drawables': [{ 'name': 'Main text', 'id': 'main', 'draw_types': ['text', 'image'] }],
-    'events': [{ 'name': 'Draw next', 'id': 'next', 'key': 'forward' }, { 'name': 'Draw previous', 'id': 'previous', 'key': 'backward' }, { 'name': 'Switch left', 'id': 'switchLeft', 'key': 'left' }, { 'name': 'Switch right', 'id': 'switchRight', 'key': 'right' }]
+    'events': [{ 'name': 'Draw next', 'trigger': 'next', 'key': 'forward' }, { 'name': 'Draw previous', 'trigger': 'previous', 'key': 'backward' }, { 'name': 'Switch left', 'trigger': 'switchLeft', 'key': 'left' }, { 'name': 'Switch right', 'trigger': 'switchRight', 'key': 'right' }]
   };
 
   opt = _.defaults(opt || {}, {
@@ -139,24 +155,27 @@ function Cube(opt) {
       depth: 1
     },
     position: {
-      x: 0,
+      x: -1,
       y: -1,
       z: -2.5
     }
   });
 
   var geometry = new THREE.CubeGeometry(opt.size.width, opt.size.height, opt.size.depth);
+  var assistant = new THREE.Mesh(new THREE.CubeGeometry(opt.size.width / 3, opt.size.height / 3, opt.size.depth / 3), new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
 
   var materials = createCubeMaterials({
     color: 0xcccccc,
     text: 'text-cube'
   });
-  console.log(geometry);
   var box = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+  var component = new THREE.Group();
 
-  box.position.x = opt.position.x;
-  box.position.y = opt.position.y;
-  box.position.z = opt.position.z;
+  component.add(box);
+  component.add(assistant);
+
+  assistant.position.set(opt.position.x - 1, opt.position.y + 1, opt.position.z - 1);
+  component.position.set(opt.position.x, opt.position.y, opt.position.z);
 
   var drawables = {
     main: function main(input) {}
@@ -164,17 +183,17 @@ function Cube(opt) {
 
   /**
    * Draw incoming data. (For each output draw on the associated drawable)
-   * @param  {outputs: [],... } object
-   * @param  {event: object, callback: fn} object
+   * @param  {object} outputs: [],...
+   * @param  {object} event: object, callback: fn
    * @return {void}
    */
-  function redraw(data, optional) {
+  function redraw(data, options) {
     data.outputs.forEach(drawOutput);
   }
 
   /**
    * Draw data point value onto drawable.
-   * @param  { value: '', drawableId: String, draw_type: String} object
+   * @param  {Object} value: '', drawableId: String, draw_type: String
    * @return {void}
    */
   function drawOutput(data) {
@@ -186,20 +205,33 @@ function Cube(opt) {
   return {
     defined: defined,
     redraw: redraw,
-    object: box
+    component: component
   };
 }
 
 function Director(engine) {
 
+  /**
+   * Initialize the objects in scene
+   * @param  {THREE.js scene} object
+   * @return {void}
+   */
   function init(scene) {
+    // XXX: Remove after config load
     var cube = Cube();
+    // Create a bounding box for size assessment
+    var boundingBox = new THREE.Box3().setFromObject(cube.component);
 
-    console.log(cube);
+    // XXX: Print out the size of our bounding box
+    console.log(boundingBox.size());
+
     scene.add(Light());
+    // Add basic pivot object to the scene (red box)
     scene.add(Pivot());
-    scene.add(cube.object);
+    scene.add(cube.component);
   }
+
+  function loadConfig() {}
 
   return {
     init: init
@@ -358,11 +390,13 @@ function VRHandlers_(camera, renderer) {
 
   var VRControls = new THREE.VRControls(camera);
   var VREffect = new THREE.VREffect(renderer);
-  VREffect.setSize(window.innerWidth, window.innerHeight);
   var VRManager = new WebVRManager(renderer, VREffect, {
     hideButton: false,
     isUndistorted: false
   });
+
+  // UNTESTED: Moved after VRManager declaration
+  VREffect.setSize(window.innerWidth, window.innerHeight);
 
   return {
     VRControls: VRControls,

@@ -1,14 +1,14 @@
 import {
   getFacesToCamera
-} from '../helpers/transforms.js';
+} from '../helpers/transforms';
 
-import Scene from './scene.js';
-import Director from './director.js';
-import Renderer from './renderer.js';
-import Draw from './draw.js';
-import View from './view.js';
-import Events from './events.js';
-import VRHandlers_ from './vr-handlers.js';
+import Scene from './scene';
+import Director from './director';
+import Renderer from './renderer';
+import Draw from './draw';
+import View from './view';
+import Events from './events';
+import VRHandlers_ from './vr-handlers';
 
 export default function() {
 
