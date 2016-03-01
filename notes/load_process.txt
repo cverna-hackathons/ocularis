@@ -1,0 +1,3 @@
+- load user settings, if none, load default settings
+- per settings loaded, initialize components 
+- who holds the provider settings and content state?

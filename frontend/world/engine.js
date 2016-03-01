@@ -2,16 +2,13 @@ import {
   getFacesToCamera
 } from '../helpers/transforms.js';
 
-import Light from './light.js';
 import Scene from './scene.js';
+import Director from './director.js';
 import Renderer from './renderer.js';
 import Draw from './draw.js';
 import View from './view.js';
 import Events from './events.js';
 import VRHandlers_ from './vr-handlers.js';
-
-//Test fixture
-import DummyBox from '../components/dummy-box.js';
 
 export default function() {
 
@@ -35,11 +32,14 @@ export default function() {
 
   var camera = null;
 
+  var director = null;
+
   function init() {
     view = View(this);
     events = Events();
-    scene.add(Light());
-    scene.add(DummyBox());
+    director = Director(this);
+
+    director.init(scene);
   }
 
   function draw() {
@@ -49,7 +49,6 @@ export default function() {
   function switchVR() {
     VREnabled = !VREnabled;
     view.reset();
-    console.log('Switching VR');
   }
 
   function enableVR() {

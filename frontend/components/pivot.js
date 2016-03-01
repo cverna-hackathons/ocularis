@@ -1,12 +1,12 @@
 export default function(opt) {
   opt = _.defaults(opt || {}, {
     size: {
-      width: 1,
-      height: 1,
-      depth: 1
+      width: .1,
+      height: .1,
+      depth: .1
     },
     position: {
-      x: -1,
+      x: 0,
       y: -1,
       z: -2.5
     },
