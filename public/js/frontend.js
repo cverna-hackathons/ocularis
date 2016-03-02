@@ -58,10 +58,10 @@ function createCubeMaterials(options) {
  * @return {THREE.Texture} Can be assigned as a material.map
  */
 function buildTextureFromText(text, size) {
-
   var texture = new THREE.Texture(getCanvasWithTextWrap(text, {
     maxWidth: size
   }));
+
   texture.needsUpdate = true;
   return texture;
 }
@@ -73,7 +73,6 @@ function buildTextureFromText(text, size) {
  * @return {Canvas element} Can be assigned as a material.map
  */
 function getCanvasWithTextWrap(text, options) {
-
   var i, j, lines, lineSpacing, projectedHeight;
   var canvas = document.createElement('canvas');
   var ctx = canvas.getContext('2d');
@@ -142,12 +141,6 @@ function getCanvasWithTextWrap(text, options) {
  */
 function Cube(opt) {
 
-  var defined = {
-    'version': 1,
-    'drawables': [{ 'name': 'Main text', 'id': 'main', 'draw_types': ['text', 'image'] }],
-    'events': [{ 'name': 'Draw next', 'trigger': 'next', 'key': 'forward' }, { 'name': 'Draw previous', 'trigger': 'previous', 'key': 'backward' }, { 'name': 'Switch left', 'trigger': 'switchLeft', 'key': 'left' }, { 'name': 'Switch right', 'trigger': 'switchRight', 'key': 'right' }]
-  };
-
   opt = _.defaults(opt || {}, {
     size: {
       width: 1,
@@ -178,7 +171,9 @@ function Cube(opt) {
   component.position.set(opt.position.x, opt.position.y, opt.position.z);
 
   var drawables = {
-    main: function main(input) {}
+    main: function main() {
+      return;
+    }
   };
 
   /**
@@ -188,7 +183,9 @@ function Cube(opt) {
    * @return {void}
    */
   function redraw(data, options) {
-    data.outputs.forEach(drawOutput);
+    data.outputs.forEach(function (output) {
+      return drawOutput(output, options);
+    });
   }
 
   /**
@@ -197,13 +194,12 @@ function Cube(opt) {
    * @return {void}
    */
   function drawOutput(data) {
-    if (data.drawableId && draw[data.drawableId]) {
+    if (data.drawableId && drawables[data.drawableId]) {
       drawables[data.drawableId](data);
     }
   }
 
   return {
-    defined: defined,
     redraw: redraw,
     component: component
   };

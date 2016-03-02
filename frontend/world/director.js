@@ -1,9 +1,9 @@
 import Light from './light';
 //Test fixture
-import Pivot from '../components/pivot';
+import Pivot from '../dummies/pivot';
 // import Routes from '../helpers/routes.js';
 // XXX: Simple text cube component test
-import Cube from '../components/text-cube';
+import Cube from '../sandbox/components/ocularis-cube/index'
 
 export default function(engine) {
 

@@ -1,6 +1,6 @@
 import {
   createCubeMaterials
-} from '../helpers/materials';
+} from './utils';
 
 /**
  * Construct the component and return exposed functions and objects
@@ -8,19 +8,6 @@ import {
  * @return {Object} object: THREE.js Group
  */
 export default function(opt) {
-
-  var defined = {
-    'version': 1,
-    'drawables': [
-      { 'name': 'Main text', 'id': 'main', 'draw_types': ['text', 'image'] }
-    ],
-    'events': [
-      { 'name': 'Draw next', 'trigger': 'next', 'key': 'forward'},
-      { 'name': 'Draw previous', 'trigger': 'previous', 'key': 'backward'},
-      { 'name': 'Switch left', 'trigger': 'switchLeft', 'key': 'left'},
-      { 'name': 'Switch right', 'trigger': 'switchRight', 'key': 'right'}
-    ]
-  };
 
   opt = _.defaults(opt || {}, {
     size: {
@@ -56,8 +43,8 @@ export default function(opt) {
   component.position.set(opt.position.x, opt.position.y, opt.position.z);
 
   var drawables = {
-    main: input => {
-
+    main: () => {
+      return;
     }
   };
 
@@ -68,7 +55,7 @@ export default function(opt) {
    * @return {void}
    */
   function redraw(data, options) {
-    data.outputs.forEach(drawOutput);
+    data.outputs.forEach((output) => drawOutput(output, options));
   }
 
   /**
@@ -77,13 +64,12 @@ export default function(opt) {
    * @return {void}
    */
   function drawOutput(data) {
-    if (data.drawableId && draw[data.drawableId]) {
+    if (data.drawableId && drawables[data.drawableId]) {
       drawables[data.drawableId](data);
     }
   }
 
   return {
-    defined: defined,
     redraw: redraw,
     component: component
   };
