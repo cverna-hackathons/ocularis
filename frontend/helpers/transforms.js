@@ -62,10 +62,11 @@ export function getFacesToCamera(objectOne, camera) {
  * Returns object containing information about the distance
  * between two objects and relative closeness boolean
  * based on provided vicinity argument
- * @param  {[type]} objectOne [description]
- * @param  {[type]} objectTwo [description]
- * @param  {[type]} vicinity  [description]
- * @return {[type]}           [description]
+ * @param  {[type]} objectOne [THREE.js object]
+ * @param  {[type]} objectTwo [THREE.js object]
+ * @param  {[type]} vicinity  [Defines in distance what is considered near]
+ * @return {Object}           Returns object with info about distance between 
+                              the objects
  */
 export function getDistanceRelation(objectOne, objectTwo, vicinity) {
   var relation       = {};
