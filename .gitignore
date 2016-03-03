@@ -2,4 +2,4 @@ config/apis.json
 config/environments.json
 node_modules/
 public/js/frontend.js
-public/sandbox/*
+public/sandbox/*.js
