@@ -63,8 +63,8 @@ function Director(engine) {
 
   function addComponents(scene) {
     window.ocularisComponents = [];
-    loadConfig(function (errs, config) {
-      if (!errs) config.components.forEach(function (component) {
+    loadSettings(function (errs, settings) {
+      if (!errs) settings.components.forEach(function (component) {
         if (component.publicUrl) {
           console.log('loading addComponents');
           $.getScript(component.publicUrl, function (data, textStatus, jqxhr) {
@@ -94,9 +94,11 @@ function Director(engine) {
   }
 
   // WIP: Makeshift for now, will need to suck from backend
-  function loadConfig(done) {
-    return done(null, {
-      components: [{ name: 'ocularis-cube', publicUrl: 'sandbox/ocularis-cube.js' }]
+  function loadSettings(done) {
+    $.get('/load_settings', function (response) {
+      if (response && response.settings) {
+        return done(null, response.settings);
+      } else return done('Unable to load user configuration.');
     });
   }
 
