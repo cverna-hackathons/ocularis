@@ -38,8 +38,9 @@ export default function() {
     view = View(this);
     events = Events();
     director = Director(this);
-
     director.init(scene);
+
+    return this;
   }
 
   function draw() {

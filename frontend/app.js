@@ -5,8 +5,7 @@ function init() {
     ORCE_ENABLE_VR: false
   };
 
-  var engine = Engine();
-  engine.init();
+  var engine = Engine().init();
 
   $('#scene').html(engine.getRenderer().domElement);
   engine.getView().reset();

@@ -1,0 +1,15 @@
+{
+  "name": "ocularis-sandbox",
+  "version": "1.0.0",
+  "description": "Ocularis sandbox for importing the custom components",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^1.5.2",
+    "underscore": "^1.8.3"
+  }
+}
