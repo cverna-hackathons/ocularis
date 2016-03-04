@@ -1,11 +1,42 @@
-import Light from './light';
-import Pivot from '../dummies/pivot';
-import {
-  loadSettings
-} from '../helpers/routes';
+function Light() {
+  return new THREE.AmbientLight(0xeeeeee);
+}
 
+function Pivot(opt) {
+  opt = _.defaults(opt || {}, {
+    size: {
+      width: .1,
+      height: .1,
+      depth: .1
+    },
+    position: {
+      x: 0,
+      y: -1,
+      z: -2.5
+    },
+    material: new THREE.MeshBasicMaterial({color: 'red'})
+  });
 
-export default function() {
+  var geometry = new THREE.CubeGeometry(opt.size.width, opt.size.height, opt.size.depth);
+  var box = new THREE.Mesh(geometry, opt.material);
+
+  box.position.x = opt.position.x;
+  box.position.y = opt.position.y;
+  box.position.z = opt.position.z;
+
+  return box;
+}
+
+function loadSettings(done) {
+  $.get('/load_settings', response => {
+    if (response && response.settings) {
+      return done(null, response.settings);
+    }
+    else return done('Unable to load user configuration.');
+  });
+}
+
+function Director() {
 
   /**
    * Initialize the objects in scene
@@ -87,4 +118,62 @@ export default function() {
     addComponents: addComponents,
     addComponent: addComponent
   };
+}
+
+function Scene() {
+  return new THREE.Scene();
+}
+
+// Render component preview
+function Preview(options) {
+  let self = {
+    update: true
+  }
+  let director = Director();
+  let scene = Scene();
+  let renderer = new THREE.WebGLRenderer();
+  let width = options.$container.width();
+  let height = options.$container.height();
+  let camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000);
+
+  console.log('preview component | width, height:', width, height);
+  
+  scene.add(Light());
+  director.addComponent(options.component, scene);
+  renderer.setSize( width, height );
+  options.$container.html(renderer.domElement);
+
+  // Draw component preview
+  let draw = function() {
+    renderer.render(scene, camera);
+    if (self.update) {
+      self.update = false;
+      requestAnimationFrame(draw);
+    }
+  }
+
+  draw();
+}
+
+$(document).ready(init);
+
+function init() {
+
+  // This will render each component in preview thumbnail
+  $('.component-preview').each((elemIndex, previewElement) => {
+    Preview(inferOptionsFrom(previewElement));
+  });
+
+  function inferOptionsFrom(previewElement) {
+    var $elem   = $(previewElement);
+    var options = {
+      $container: $elem,
+      component: {
+        id: $elem.attr('data-id'),
+        name: $elem.attr('data-name'),
+        publicPath: $elem.attr('data-public-path')
+      }
+    };
+    return options;
+  }
 }

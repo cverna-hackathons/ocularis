@@ -23,10 +23,10 @@ export function createCubeMaterials(options) {
  * @return {THREE.Texture} Can be assigned as a material.map
  */
 export function buildTextureFromText(text, size) {
-
   var texture = new THREE.Texture(getCanvasWithTextWrap(text, {
     maxWidth: size
   }));
+
   texture.needsUpdate  = true;
   return texture;
 }

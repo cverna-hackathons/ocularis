@@ -4,9 +4,13 @@
   "description": "Ocularis sandbox for importing the custom components",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "exit 0"
   },
-  "author": "",
+  "author": "Peter Berezny",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/cverna-hackathons/ocularis-sandbox.git"
+  },
   "license": "MIT",
   "dependencies": {
     "async": "^1.5.2",

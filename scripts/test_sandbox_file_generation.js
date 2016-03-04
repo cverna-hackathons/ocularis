@@ -1,7 +1,7 @@
 'use strict';
 
 
-var sandbox = require('../sandbox/lib')();
+var sandbox = require('../app/lib/sandbox/lib')();
 
 sandbox.createComponentFile({
   name: 'ocularis-cube'

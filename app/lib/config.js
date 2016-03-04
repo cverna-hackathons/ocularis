@@ -5,6 +5,4 @@ var env = process.env.NODE_ENV || 'development';
 var env_config = require('../config/environments');
 var apis = require('../config/apis');
 
-
-
 module.exports = _.extend({ root: rootPath }, env_config[env], apis);

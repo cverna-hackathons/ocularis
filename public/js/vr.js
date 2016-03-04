@@ -33,10 +33,15 @@ function Pivot(opt) {
   return box;
 }
 
-// XXX: Simple text cube component test
-// import Cube from '../sandbox/ocularis-cube.js'
+function loadSettings(done) {
+  $.get('/load_settings', function (response) {
+    if (response && response.settings) {
+      return done(null, response.settings);
+    } else return done('Unable to load user configuration.');
+  });
+}
 
-function Director(engine) {
+function Director() {
 
   /**
    * Initialize the objects in scene
@@ -62,48 +67,57 @@ function Director(engine) {
   }
 
   function addComponents(scene) {
-    window.ocularisComponents = [];
+    initializeComponentContainers();
+    console.log('loading addComponents');
     loadSettings(function (errs, settings) {
-      if (!errs) settings.components.forEach(function (component) {
-        if (component.publicUrl) {
-          console.log('loading addComponents');
-          $.getScript(component.publicUrl, function (data, textStatus, jqxhr) {
-            //console.log('addComponents | data:', data);
-            console.log('addComponents | load | textStatus:', textStatus);
-            var instance = getComponent(component.name);
-
-            if (instance && instance.component) scene.add(instance.component);
-          });
-        }
-      });
+      if (!errs) {
+        settings.components.forEach(function (component) {
+          addComponent(component, scene);
+        });
+      }
     });
   }
 
-  function getComponent(name) {
-    var hit;
+  function initializeComponentContainers() {
+    window.ocularisComponents = [];
+    window.ocularisComponentConstructors = [];
+  }
 
-    for (var i = 0; i < (window.ocularisComponents || []).length; i++) {
-      var candidate = window.ocularisComponents[i];
+  function addComponent(component, scene) {
+    console.log('addComponents | component:', component);
+    if (component.publicPath) {
+      $.getScript(component.publicPath, function (data, textStatus, jqxhr) {
+        console.log('addComponents | textStatus, jqxhr:', textStatus, jqxhr);
+        var componentConstructor = getComponentConstructor(component.name);
+
+        if (typeof componentConstructor === 'function') {
+          console.log('found constructor');
+          var instance = componentConstructor(component.id || Date.now());
+          scene.add(instance.component);
+        } else console.warn('Loaded object is not a constructor function!', componentConstructor);
+      });
+    }
+  }
+
+  function getComponentConstructor(name) {
+    var hit;
+    var constructors = window.ocularisComponentConstructors || [];
+
+    for (var i = 0; i < constructors.length; i++) {
+      var candidate = constructors[i];
       console.log('candidate:', candidate);
-      if (candidate && candidate.name === name) {
-        hit = candidate;
+      if (candidate && candidate.name === name && candidate._constructor) {
+        hit = candidate._constructor;
         break;
       }
     }
     return hit;
   }
 
-  // WIP: Makeshift for now, will need to suck from backend
-  function loadSettings(done) {
-    $.get('/load_settings', function (response) {
-      if (response && response.settings) {
-        return done(null, response.settings);
-      } else return done('Unable to load user configuration.');
-    });
-  }
-
   return {
-    init: init
+    init: init,
+    addComponents: addComponents,
+    addComponent: addComponent
   };
 }
 
@@ -384,11 +398,11 @@ function Engine() {
 }
 
 function init() {
+  var engine = Engine().init();
+
   WebVRConfig = {
     ORCE_ENABLE_VR: false
   };
-
-  var engine = Engine().init();
 
   $('#scene').html(engine.getRenderer().domElement);
   engine.getView().reset();
