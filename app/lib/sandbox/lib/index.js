@@ -6,7 +6,7 @@ function sandbox() {
   var fs        = require('fs');
   var async     = require('async');
   var _         = require('underscore');
-  var buildDir  = path.resolve(__dirname, '../../../../public/sandbox')
+  var buildDir  = path.resolve(__dirname, '../../../../public/sandbox');
 
   function createComponentFile(component, done) {
     
