@@ -19,7 +19,17 @@ module.exports = (function() {
             description: 'Provides twitter feed browsing.',
             id: 'twitter'
           }
-        } 
+        },
+        {
+          name: 'ocularis-cube',
+          id: 'hn-ocularis-cube',
+          provider: {
+            type: 'feed',
+            name: 'HN feed',
+            description: 'Provides HN feed browsing.',
+            id: 'hn'
+          }
+        }
       ],
       time: Date.now()
     };

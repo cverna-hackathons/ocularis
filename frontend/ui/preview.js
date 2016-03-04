@@ -20,9 +20,10 @@ export default function(options) {
 
   console.log('preview component | width, height:', width, height);
   
+  options.component.preview = true;
   scene.add(Light());
   director.addComponent(options.component, scene);
-  renderer.setSize( width, height );
+  renderer.setSize(width, height);
   options.$container.html(renderer.domElement);
 
   // Draw component preview
@@ -33,7 +34,7 @@ export default function(options) {
       requestAnimationFrame(draw);
     }
   }
-
+  window.ocularisComponents = [];
   draw();
 }
 
