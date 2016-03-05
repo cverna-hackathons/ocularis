@@ -2,3 +2,7 @@ app/config/apis.json
 app/config/environments.json
 app/config/database.json
 node_modules/
+node_modules/
+public/js/frontend.js
+public/sandbox/*.js
+tmp/*.js

@@ -1,0 +1,19 @@
+{
+  "name": "ocularis-sandbox",
+  "version": "1.0.0",
+  "description": "Ocularis sandbox for importing the custom components",
+  "main": "index.js",
+  "scripts": {
+    "test": "exit 0"
+  },
+  "author": "Peter Berezny",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/cverna-hackathons/ocularis-sandbox.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "async": "^1.5.2",
+    "underscore": "^1.8.3"
+  }
+}

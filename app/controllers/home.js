@@ -1,16 +1,36 @@
 'use strict'
 
 
-// var router          = express.Router();
+const settingsLoader  = require('../lib/settings/loader');
 
-
-// module.exports = app => app.use('/', router);
 module.exports = app => {
+
   var path = require('path');
   // Render main page
-  app.get('/', (req, res) => res.render('index', { title: 'Ocularis' }));
+  app.get('/vr', (req, res) => {
+    res.render('scene', { 
+      title: 'Ocularis - VR world',
+      layout: 'vr'
+    });
+  });
+
+  app.get('/', (req, res) => {
+    settingsLoader.getSettings(null, (err, settings) => {
+      res.render('index', { 
+        title: 'Ocularis - VR constructor',
+        settings: settings
+      });
+    });
+  });
+
   // Load structure for the user, WIP
-  app.get('/content/structure', (req, res) => res.send({}));
+  app.get('/load_settings', (req, res) => {
+    settingsLoader.getSettings(null, (err, settings) => {
+      res.send({
+        settings: settings
+      });
+    });
+  });
 
   app.post('/feed', (req, res) => {
     var options = req.body;

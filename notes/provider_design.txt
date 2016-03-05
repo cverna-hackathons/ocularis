@@ -1,0 +1,30 @@
+Component
+=========
+
+Component is the object that takes a provider generated data point and renders it according to the provided settings.
+
+API design - Inputs
+--------------------
+
+Component module returns a factory function, whichtakes the following options to construct the component instance:
+- Output types that map to drawables
+- Events
+- Custom rendering / transition attributes
+
+Example component instantiation:
+```javascript
+var component = require('ocularis-cube')({
+  events: [
+    { name: String, trigger_id: Integer, }
+  ],
+  
+});
+```
+
+### Initial position, rotation and scale attributes
+
+API design - Outputs
+--------------------
+
+
+Allows component placement into the scene. Especially if there are multiple components.
