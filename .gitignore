@@ -1,6 +1,7 @@
 config/apis.json
 config/environments.json
 node_modules/
-public/js/frontend.js
+public/js/ui.js
+public/js/vr.js
 public/sandbox/*.js
 tmp/*.js

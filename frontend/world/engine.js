@@ -34,11 +34,12 @@ export default function() {
 
   var director = null;
 
+
   function init() {
     view = View(this);
     events = Events();
     director = Director(this);
-    director.init(scene);
+    director.init();
 
     return this;
   }
@@ -94,6 +95,14 @@ export default function() {
     return renderer;
   }
 
+  function getScene() {
+    return scene;
+  }
+
+  function getCamera() {
+    return camera;
+  }
+
   function getView() {
     return view;
   }
@@ -110,7 +119,9 @@ export default function() {
     setFrameUpdate,
     setCamera,
     getRenderer,
-    getView
+    getView,
+    getCamera,
+    getScene
   };
 
 }

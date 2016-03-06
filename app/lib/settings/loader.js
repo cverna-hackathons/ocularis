@@ -29,6 +29,16 @@ module.exports = (function() {
             description: 'Provides HN feed browsing.',
             id: 'hn'
           }
+        },
+        {
+          name: 'ocularis-cube',
+          id: 'ld-ocularis-cube',
+          provider: {
+            type: 'feed',
+            name: 'LD feed',
+            description: 'Provides LD feed browsing.',
+            id: 'ld'
+          }
         }
       ],
       time: Date.now()

@@ -41,44 +41,71 @@ function loadSettings(done) {
   });
 }
 
-function Director() {
+function Director(engine) {
 
-  var initialDistance = 3;
+  // We shall track the camera and scene objects
+  var _scene = undefined;
+
+  var initialDistance = 2.5;
   var angleShift = Math.PI / 180 * 36;
+  var xShift = Math.sin(angleShift) * initialDistance;
+  var zShift = Math.cos(angleShift) * -initialDistance;
+
   // Serves to place and rotate the component instances into sectors
   // of ?semi-dodecahedron (6 max for now?), may want to generate this later
   var componentArrangementMap = [
-  //
-  { position: [0, 0, -initialDistance], rotation: [0, 0, 0] }, { position: [Math.sin(angleShift) * initialDistance, 0, Math.cos(angleShift) * -initialDistance],
-    rotation: [0, -angleShift, 0]
-  }];
+  // Initial front facing position
+  { position: [0, 0, -initialDistance], rotation: [0, 0, 0] },
+  // Front left
+  { position: [xShift, 0, zShift], rotation: [0, -angleShift, 0] },
+  // Front right
+  { position: [-xShift, 0, zShift], rotation: [0, angleShift, 0] }];
+
   /**
    * Initialize the objects in scene
    * @param  {THREE.js scene} object
    * @return {void}
    */
-  function init(scene) {
-
-    scene.add(Light());
+  function init() {
+    _scene = engine.getScene();
+    _scene.add(Light());
     // Add basic pivot object to the scene (red box)
-    scene.add(Pivot());
+    _scene.add(Pivot());
+    addComponents();
+  }
 
-    // XXX: Remove after config load
+  function findDisplayFrame(component) {
     // // Create a bounding box for size assessment
     // var boundingBox = new THREE.Box3().setFromObject(cube.component)
     // console.log(boundingBox.size())
+    var _camera = engine.getCamera();
+    var boundingBox = new THREE.Box3().setFromObject(component);
+    var bbSize = boundingBox.size();
+    var cameraAspect = _camera.aspect;
+    var fovRad = Math.PI / 180 * _camera.fov;
+    var hFovRad = fovRad * cameraAspect;
+    var objectXYAspect = bbSize.x / bbSize.y;
+    var cameraWider = cameraAspect > objectXYAspect;
+    var frameWidth = cameraWider ? bbSize.y * cameraAspect : bbSize.x;
+    var frameHeight = cameraWider ? bbSize.y : bbSize.x * cameraAspect;
+    var zDistance = frameWidth / (2 * Math.tan(hFovRad / 2)) * 1.6;
+    var cameraFrame = new THREE.Mesh(new THREE.PlaneGeometry(frameWidth, frameHeight), new THREE.MeshBasicMaterial({ color: '#00ff00', wireframe: true }));
 
-    addComponents(scene);
+    console.log('findDisplayFrame | hFovRad, frameWidth, frameHeight:', hFovRad, frameWidth, frameHeight, zDistance);
+
+    _scene.add(cameraFrame);
+
+    cameraFrame.position.set(0, 0, -zDistance);
   }
 
-  function addComponents(scene) {
+  function addComponents() {
     initializeComponentContainers();
     console.log('loading addComponents');
     loadSettings(function (errs, settings) {
       if (!errs) {
         settings.components.forEach(function (component, componentIdx) {
           component.idx = componentIdx;
-          addComponent(component, scene);
+          addComponent(component);
         });
       }
     });
@@ -98,7 +125,7 @@ function Director() {
     window.ocularisComponentConstructors = new Array();
   }
 
-  function addComponent(component, scene) {
+  function addComponent(component) {
     console.log('addComponents | component:', component);
     if (component.publicPath) {
       $.getScript(component.publicPath, function (data, textStatus, jqxhr) {
@@ -110,11 +137,13 @@ function Director() {
           var instance = componentConstructor(component.id || Date.now());
 
           // If component is in preview, do not add to global
-          // in order to prevent
+          // in order to prevent displacement in preview
           if (!component.preview) {
             arrangeComponent(instance);
+            findDisplayFrame(instance.component);
+            // instance.component.visible = false;
           }
-          scene.add(instance.component);
+          _scene.add(instance.component);
         } else console.warn('Loaded object is not a constructor function!', componentConstructor);
       });
     }
@@ -358,7 +387,7 @@ function Engine() {
     view = View(this);
     events = Events();
     director = Director(this);
-    director.init(scene);
+    director.init();
 
     return this;
   }
@@ -414,6 +443,14 @@ function Engine() {
     return renderer;
   }
 
+  function getScene() {
+    return scene;
+  }
+
+  function getCamera() {
+    return camera;
+  }
+
   function getView() {
     return view;
   }
@@ -430,7 +467,9 @@ function Engine() {
     setFrameUpdate: setFrameUpdate,
     setCamera: setCamera,
     getRenderer: getRenderer,
-    getView: getView
+    getView: getView,
+    getCamera: getCamera,
+    getScene: getScene
   };
 }
 

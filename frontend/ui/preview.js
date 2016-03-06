@@ -8,23 +8,20 @@ import {
 
 // Render component preview
 export default function(options) {
-  let self = {
-    update: true
-  }
+  let self = { update: true };
   let director = Director();
   let scene = Scene();
   let renderer = new THREE.WebGLRenderer();
-  let width = options.$container.width();
-  let height = options.$container.height();
+  let $container = options.$container;
+  let width = $container.width();
+  let height = $container.height();
   let camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000);
-
-  console.log('preview component | width, height:', width, height);
   
   options.component.preview = true;
   scene.add(Light());
   director.addComponent(options.component, scene);
   renderer.setSize(width, height);
-  options.$container.html(renderer.domElement);
+  $container.html(renderer.domElement);
 
   // Draw component preview
   let draw = function() {
@@ -33,8 +30,7 @@ export default function(options) {
       self.update = false;
       requestAnimationFrame(draw);
     }
-  }
-  window.ocularisComponents = [];
+  };
   draw();
 }
 
