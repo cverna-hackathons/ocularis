@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         ComponentProviderBinding.belongsTo(models.WorldElement);
         ComponentProviderBinding.hasOne(models.ProviderOutput);
         ComponentProviderBinding.hasOne(models.ComponentField);
+        ComponentProviderBinding.hasOne(models.Event);
       }
     }
   });
