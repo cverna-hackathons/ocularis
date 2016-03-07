@@ -1,0 +1,6 @@
+cd /c/apps/ocularis/app/lib/sandbox/node_modules/ocularis-cube
+npm run build && node /c/apps/ocularis/scripts/test_sandbox_file_generation.js
+
+/c/apps/ocularis
+npm run build:js
+nodemon app

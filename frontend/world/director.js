@@ -29,7 +29,7 @@ export default function(engine) {
     // Front left
     { position: [xShift, 0, zShift], rotation: [0, -angleShift, 0] },
     // Front right
-    { position: [-xShift, 0, zShift], rotation: [0, angleShift, 0] }    
+    { position: [-xShift, 0, zShift], rotation: [0, angleShift, 0] }
   ];
 
   /**
@@ -116,7 +116,6 @@ export default function(engine) {
   }
 
   function initComponents() {
-    console.log('initComponents');
     window.ocularisComponents = new Array();
   }
 
@@ -125,16 +124,13 @@ export default function(engine) {
   }
 
   function addComponent(component) {
-    console.log('addComponents | component:', component);
     if (component.publicPath) {
       $.getScript(component.publicPath, (data, textStatus, jqxhr) => {
         console.log('addComponents | textStatus, jqxhr:', textStatus, jqxhr);
         var componentConstructor = getComponentConstructor(component.name);
 
         if (typeof componentConstructor === 'function') {
-          console.log('found constructor');
           var instance = componentConstructor(component.id || Date.now());
-
           // If component is in preview, do not add to global
           // in order to prevent displacement in preview
           if (!component.preview) {
@@ -155,7 +151,7 @@ export default function(engine) {
     let idx = window.ocularisComponents.length;
     let arrangement = componentArrangementMap[idx];
     
-    console.log('idx, arrangement:', idx, arrangement, window.ocularisComponents)
+    console.log('idx, arrangement:', idx, arrangement, window.ocularisComponents);
     if (arrangement) {
       let pos = arrangement.position;
       let rot = arrangement.rotation;

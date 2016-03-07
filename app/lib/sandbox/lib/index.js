@@ -13,7 +13,6 @@ function sandbox() {
     var componentFile = ''
 
     assignComponentPaths(component);
-
     async.waterfall([
       next => reinstallComponentPackage(component, next),
       next => getComponentPackageDetails(component, next),
@@ -36,7 +35,7 @@ function sandbox() {
 
   function getComponentPackageDetails(component, done) {
     var packageDetails = require(
-      path.resolve(component.sourceDir + '/package.json')
+      path.resolve(component.sourceDir, 'package.json')
     );
 
     console.log('packageDetails', packageDetails)
@@ -53,7 +52,7 @@ function sandbox() {
       __dirname, '../node_modules', component.name
     );
     component.sourcePath  = path.resolve(component.sourceDir, 'dist', 'index.js');
-    component.buildPath   = (buildDir + '/' + component.name + '.js');
+    component.buildPath   = path.resolve(buildDir, component.name + '.js');
     component.publicPath  = ('sandbox/' + component.name + '.js');
     console.log('assignComponentPath | component:', component);
   }
@@ -68,7 +67,7 @@ function sandbox() {
       ' ' + componentContent + '\n' +
       ' componentProperties._constructor = componentConstructor;\n' +
       // Component content will execute the construction and we will have a 
-      // variable of newComponent available
+      // variable of componentConstructor available
       ' window.ocularisComponentConstructors.push(componentProperties);\n' +
       '})();\n'
     );
