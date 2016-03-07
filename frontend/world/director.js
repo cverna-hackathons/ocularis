@@ -1,19 +1,25 @@
 import Light from './light';
 import Pivot from '../dummies/pivot';
-import {
-  loadSettings
-} from '../helpers/routes';
+import { distanceToCameraFit } from '../helpers/measures';
+import { loadSettings } from '../helpers/routes';
 
 
 export default function(engine) {
   
-  // We shall track the camera and scene objects
-  let _scene;
+  // Track the camera and scene objects
+  // Also add a helper arrow to see what objects camera is directly looking at
+  // Add raycaster object to find intersects for the above
+  let _scene, _camera, _arrow, _raycaster;
+
+  // Create a shared object to assign instance in view
+  let _inView = {};
 
   const initialDistance = 2.5;
   const angleShift      = (Math.PI / 180 * 36);
   const xShift          = (Math.sin(angleShift) * initialDistance);
   const zShift          = (Math.cos(angleShift) * -initialDistance);
+  const selectedColor   = '#ff0000';
+  const unselectedColor = '#eeeeee';
 
   // Serves to place and rotate the component instances into sectors
   // of ?semi-dodecahedron (6 max for now?), may want to generate this later
@@ -32,6 +38,7 @@ export default function(engine) {
    * @return {void}
    */
   function init() {
+    _raycaster = new THREE.Raycaster();
     _scene = engine.getScene();
     _scene.add(Light());
     // Add basic pivot object to the scene (red box)
@@ -39,32 +46,55 @@ export default function(engine) {
     addComponents();
   }
 
-  function findDisplayFrame(component) {
-    // // Create a bounding box for size assessment
-    // var boundingBox = new THREE.Box3().setFromObject(cube.component)
-    // console.log(boundingBox.size())
-    let _camera = engine.getCamera();
-    let boundingBox = new THREE.Box3().setFromObject(component);
-    let bbSize = boundingBox.size();
-    let cameraAspect = _camera.aspect;
-    let fovRad = ((Math.PI / 180) * _camera.fov);
-    let hFovRad = fovRad * cameraAspect;
-    let objectXYAspect = (bbSize.x / bbSize.y);
-    let cameraWider = (cameraAspect > objectXYAspect);
-    let frameWidth = (cameraWider ? (bbSize.y * cameraAspect) : bbSize.x);
-    let frameHeight = (cameraWider ? bbSize.y : (bbSize.x * cameraAspect));
-    let zDistance = (frameWidth / (2 * Math.tan(hFovRad / 2))) * 1.6;
-    let cameraFrame = new THREE.Mesh(
-      new THREE.PlaneGeometry(frameWidth, frameHeight),
-      new THREE.MeshBasicMaterial({ color: '#00ff00', wireframe: true })
+  function checkForUpdates() {
+    selectComponentInView();
+    return;
+  }
+
+
+  function findDisplayFrame(componentFrame) {
+    _camera = _camera || engine.getCamera();
+    let zDistance = distanceToCameraFit(componentFrame, _camera);
+
+    console.log('findDisplayFrame | zDistance:', zDistance);
+  }
+
+  function selectComponentInView() {
+    // Check which component am I looking at
+    _inView.distance = 100; // Only capture objects that are no further than 100
+    _inView.instance = null;
+    
+      // Cast a ray down the camera vector
+    if (_arrow) _scene.remove (_arrow);
+    _camera = engine.getCamera();
+    _arrow = new THREE.ArrowHelper(
+      _camera.getWorldDirection(), 
+      _camera.getWorldPosition(), 1, 0x00ff00
     );
+    _scene.add(_arrow);
+    _raycaster.setFromCamera( {x: 0, y: 0}, _camera);
+      // Get the component frames intersecting the ray
+    window.ocularisComponents.forEach((instance, instanceIdx) => {
+      let intersections = _raycaster.intersectObject(instance.frame);
+      
+      // Get the closest component in intersection
+      if (intersections.length && intersections[0].distance < _inView.distance) {
+        _inView.distance  = intersections[0].distance;
+        _inView.instance  = instance;
+      }
+    });
+    highlightSelection();
+  }
 
-    console.log('findDisplayFrame | hFovRad, frameWidth, frameHeight:', hFovRad, frameWidth, frameHeight, zDistance);
-
-    _scene.add(cameraFrame);
-
-    cameraFrame.position.set(0,0, -zDistance);
-
+  function highlightSelection() {
+    window.ocularisComponents.forEach((instance) => {
+      if (_inView.instance && instance.id === _inView.instance.id) {
+        _inView.instance.frame.material.color.set(selectedColor);
+      }
+      else {
+        instance.frame.material.color.set(unselectedColor);
+      }
+    });
   }
 
   function addComponents() {
@@ -109,7 +139,7 @@ export default function(engine) {
           // in order to prevent displacement in preview
           if (!component.preview) {
             arrangeComponent(instance);
-            findDisplayFrame(instance.component);
+            findDisplayFrame(instance.frame);
             // instance.component.visible = false;
           }
           _scene.add(instance.component);
@@ -155,6 +185,7 @@ export default function(engine) {
     init: init,
     addComponents: addComponents,
     addComponent: addComponent,
-    initComponents: initComponents
+    initComponents: initComponents,
+    checkForUpdates: checkForUpdates
   };
 }

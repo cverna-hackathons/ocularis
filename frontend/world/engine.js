@@ -68,11 +68,7 @@ export default function() {
   }
 
   function update() {
-    models.forEach((model) => {
-      if (model.active && model.checkUpdate()) {
-        frameUpdate = true;
-      }
-    });
+    director.checkForUpdates();
   }
 
   function getVREnabled() {
