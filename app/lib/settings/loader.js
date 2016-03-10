@@ -9,6 +9,9 @@ module.exports = (function() {
   function defaultSettings() {
     var DEFAULTS = {
       name: 'Default world',
+      ui: {
+        activationKey: 'spacebar'
+      },
       components: [
         {
           name: 'ocularis-cube',

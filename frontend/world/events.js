@@ -37,9 +37,7 @@ export default function() {
   }
 
   function trackKeys (event) {
-    triggerKeyEvent(
-      getEventKeyDirection(event, 'keydown')
-    );
+    triggerKeyEvent(getEventKeyDirection(event, 'keydown'));
   }
 
   function setTriggers () {
@@ -47,26 +45,15 @@ export default function() {
   }
 
   function triggerKeyEvent(key) {
-    if (listeners[key]) {
-      listeners[key].forEach(function(obj){
-        obj.callback();
-      });
-    }
+    if (listeners[key]) listeners[key].forEach(obj => {
+      return obj.callback()
+    });
   }
 
   function addEventListener(key, done, id) {
-    if (!listeners[key]) {
-      listeners[key] = [];
-    }
-
-    if (!id) {
-      id = Date.now()
-    }
-
-    listeners[key].push({
-      callback: done,
-      id: id
-    });
+    if (!listeners[key]) listeners[key] = [];
+    id = (id || Date.now());
+    listeners[key].push({ callback: done, id: id });
     return id;
   }
 
@@ -83,10 +70,8 @@ export default function() {
   setTriggers();
 
   return {
-    getListeners: function(){
-      return listeners;
-    },
-    addEventListener: addEventListener,
-    removeEventListener: removeEventListener
+    getListeners: () => listeners,
+    addEventListener,
+    removeEventListener
   };
 }

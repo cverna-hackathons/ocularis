@@ -39,7 +39,7 @@ export default function() {
     view = View(this);
     events = Events();
     director = Director(this);
-    director.init();
+    director.init(scene);
 
     return this;
   }
@@ -103,6 +103,10 @@ export default function() {
     return view;
   }
 
+  function getEvents() {
+    return events;
+  }
+
   return {
     init,
     draw,
@@ -117,7 +121,8 @@ export default function() {
     getRenderer,
     getView,
     getCamera,
-    getScene
+    getScene,
+    getEvents,
   };
 
 }

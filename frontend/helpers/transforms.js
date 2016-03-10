@@ -8,7 +8,7 @@
 export function rotate(object, axis, radians) {
 
   //transform string axis type to vector3
-  axis = (function(axis){
+  axis = ((axis) => {
     switch(axis) {
       case 'x':
         return new THREE.Vector3(1, 0, 0);
@@ -19,7 +19,7 @@ export function rotate(object, axis, radians) {
     }
   })(axis);
 
-  var rotMatrix = new THREE.Matrix4();
+  let rotMatrix = new THREE.Matrix4();
   rotMatrix.makeRotationAxis(axis.normalize(), radians);
   rotMatrix.multiply(object.matrix);
   object.matrix = rotMatrix;
@@ -33,18 +33,18 @@ export function rotate(object, axis, radians) {
  * @return {??} indices
  */
 export function getFacesToCamera(objectOne, camera) {
-  var aligned = { value: null, faceIndices: [] };
+  let aligned = { value: null, faceIndices: [] };
 
   if (objectOne && objectOne.geometry && objectOne.geometry.faces) {
-    var faces = objectOne.geometry.faces;
-    var cameraLookAt = new THREE.Vector3(0,0, -1);
-    var normalMatrix = new THREE.Matrix3().getNormalMatrix(objectOne.matrixWorld);
+    let faces = objectOne.geometry.faces;
+    let cameraLookAt = new THREE.Vector3(0, 0, -1);
+    let normalMatrix = new THREE.Matrix3().getNormalMatrix(objectOne.matrixWorld);
 
     cameraLookAt.applyQuaternion(camera.quaternion);
-    faces.forEach(function(face, faceIndex) {
-      var worldNormal =
+    faces.forEach((face, faceIndex) => {
+      let worldNormal =
         face.normal.clone().applyMatrix3(normalMatrix).normalize();
-      var radiansToLookAt = worldNormal.angleTo(cameraLookAt);
+      let radiansToLookAt = worldNormal.angleTo(cameraLookAt);
 
       if (aligned.value === radiansToLookAt) {
         aligned.faceIndices.push(faceIndex);
@@ -58,29 +58,10 @@ export function getFacesToCamera(objectOne, camera) {
   return aligned.faceIndices;
 }
 
-/**
- * Returns object containing information about the distance
- * between two objects and relative closeness boolean
- * based on provided vicinity argument
- * @param  {[type]} objectOne [THREE.js object]
- * @param  {[type]} objectTwo [THREE.js object]
- * @param  {[type]} vicinity  [Defines in distance what is considered near]
- * @return {Object}           Returns object with info about distance between 
-                              the objects
- */
-export function getDistanceRelation(objectOne, objectTwo, vicinity) {
-  var relation       = {};
-  var objectOnePos   = objectOne.position;
-  var objectTwoPos   = objectTwo.position;
-  var distanceVec = new THREE.Vector3(
-    (objectOnePos.x - objectTwoPos.x),
-    (objectOnePos.y - objectTwoPos.y),
-    (objectOnePos.z - objectTwoPos.z)
-  );
+export function moveTo(object, distanceVec) {
+  object.position.add(distanceVec);
+}
 
-  relation.distanceVec = distanceVec;
-  relation.distance = objectOnePos.distanceTo(objectTwoPos);
-  relation.isClose = (relation.distance < vicinity);
-
-  return relation;
+export function rotateTo(object, rotationVec) {
+  object.rotation.copy(rotationVec);
 }
