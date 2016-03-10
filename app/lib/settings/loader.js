@@ -14,8 +14,8 @@ module.exports = (function() {
       },
       components: [
         {
-          name: 'ocularis-cube',
-          id: 'twitter-ocularis-cube',
+          name: 'ocularis-pane',
+          id: 'twitter-ocularis-pane',
           provider: {
             type: 'feed',
             name: 'Twitter feed',
@@ -24,7 +24,7 @@ module.exports = (function() {
           }
         },
         {
-          name: 'ocularis-cube',
+          name: 'ocularis-pane',
           id: 'hn-ocularis-cube',
           provider: {
             type: 'feed',

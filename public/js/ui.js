@@ -105,11 +105,14 @@ function getTransformRelation(objectOne, objectTwo, vicinity) {
 
   var relation = {};
 
-  var objectOnePos = objectOne.position;
-  var objectTwoPos = objectTwo.position;
+  var objectOnePos = new THREE.Vector3();
+  var objectTwoPos = new THREE.Vector3();
 
   var objectOneRot = objectOne.rotation;
   var objectTwoRot = objectTwo.rotation;
+
+  objectOnePos.setFromMatrixPosition(objectOne.matrixWorld);
+  objectTwoPos.setFromMatrixPosition(objectTwo.matrixWorld);
 
   var distanceVec = new THREE.Vector3(objectOnePos.x - objectTwoPos.x, objectOnePos.y - objectTwoPos.y, objectOnePos.z - objectTwoPos.z);
   var rotationVec = new THREE.Vector3(objectOneRot.x - objectTwoRot.x, objectOneRot.y - objectTwoRot.y, objectOneRot.z - objectTwoRot.z);
@@ -222,7 +225,7 @@ function Director(engine) {
       activateComponent();
     } else if (_inView.instance && _inView.instance.activated) {
       deactivateComponent(_inView.instance);
-    }
+    } else console.log('No component in view.');
   }
 
   /**
@@ -246,9 +249,12 @@ function Director(engine) {
     console.log('fitting:', fitting);
     console.log('_inView', _inView);
 
+    _inView.instance.component.updateMatrixWorld();
     // Get the distance and rotation relations between fitting plane and frame
     var transformRelation = getTransformRelation(_inView.instance.frame, fittingPlane, 1);
 
+    // Negate on the z axis, since we are coming closer to camera
+    transformRelation.distanceVec.z *= -1;
     moveTo(_inView.instance.component, transformRelation.distanceVec);
     rotateTo(_inView.instance.component, transformRelation.rotationVec);
     _inView.instance.activated = true;

@@ -73,11 +73,14 @@ export function getTransformRelation(objectOne, objectTwo, vicinity) {
   
   let relation       = {};
   
-  let objectOnePos   = objectOne.position;
-  let objectTwoPos   = objectTwo.position;
+  let objectOnePos   = new THREE.Vector3();
+  let objectTwoPos   = new THREE.Vector3();
 
   let objectOneRot   = objectOne.rotation;
   let objectTwoRot   = objectTwo.rotation;
+
+  objectOnePos.setFromMatrixPosition(objectOne.matrixWorld);
+  objectTwoPos.setFromMatrixPosition(objectTwo.matrixWorld);
 
   let distanceVec = new THREE.Vector3(
     (objectOnePos.x - objectTwoPos.x),

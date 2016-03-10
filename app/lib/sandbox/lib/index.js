@@ -3,6 +3,7 @@
 function sandbox() {
   
   var path      = require('path');
+  var cProc     = require('child_process');
   var fs        = require('fs');
   var async     = require('async');
   var _         = require('underscore');
@@ -10,13 +11,13 @@ function sandbox() {
 
   function createComponentFile(component, done) {
     
-    var componentFile = ''
+    var componentFile = '';
 
     assignComponentPaths(component);
     async.waterfall([
-      next => reinstallComponentPackage(component, next),
+      next => rebuildComponentPackage(component, next),
       next => getComponentPackageDetails(component, next),
-      readHeaderFile,
+      next => readHeaderFile(next),
       (headerFileContent, next) => {
         componentFile = concatenate(componentFile, headerFileContent);
         fs.readFile(component.sourcePath, (err, componentContent) => {
@@ -29,8 +30,14 @@ function sandbox() {
     ], done);
   }
 
-  function reinstallComponentPackage(component, done) {
-    return done();
+  function rebuildComponentPackage(component, done) {
+    var buildCommand = `cd ${component.sourceDir} && ${component.buildScript}`;
+    // console.log('rebuildComponentPackage | buildCommand:', buildCommand);
+    async.series([
+      // Build the latest updates
+      next => cProc.exec(buildCommand, err => next(err))
+    ], (errs) => done(errs));
+    // Build the package if it requires building
   }
 
   function getComponentPackageDetails(component, done) {
@@ -48,6 +55,7 @@ function sandbox() {
   }
 
   function assignComponentPaths(component) {
+    component.buildScript = 'npm run build';
     component.sourceDir   = path.resolve(
       __dirname, '../node_modules', component.name
     );

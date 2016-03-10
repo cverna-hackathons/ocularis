@@ -11,6 +11,7 @@
     "compile:ui-frontend": "rollup -i ./frontend/ui.js > tmp/tmp-ui.js && babel --presets es2015 --out-file ./public/js/ui.js < tmp/tmp-ui.js",
     "prewatch:js": "npm run prebuild:js",
     "watch:js": "watch 'npm run build:js' ./frontend/.",
+    "build:components": "node scripts/build_components",
     "seed-database": "node scripts/seed_database"
   },
   "dependencies": {

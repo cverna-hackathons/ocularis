@@ -96,6 +96,7 @@ export default function(engine) {
     else if (_inView.instance && _inView.instance.activated) {
       deactivateComponent(_inView.instance);
     }
+    else console.log('No component in view.');
   }
 
   /**
@@ -121,10 +122,13 @@ export default function(engine) {
     console.log('fitting:', fitting);
     console.log('_inView', _inView);
 
+    _inView.instance.component.updateMatrixWorld();
     // Get the distance and rotation relations between fitting plane and frame
     let transformRelation = 
       getTransformRelation(_inView.instance.frame, fittingPlane, 1);
 
+    // Negate on the z axis, since we are coming closer to camera
+    transformRelation.distanceVec.z *= -1;
     moveTo(_inView.instance.component, transformRelation.distanceVec);
     rotateTo(_inView.instance.component, transformRelation.rotationVec);
     _inView.instance.activated = true;

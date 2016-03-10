@@ -24,7 +24,7 @@ let tasks = [
 
 q.all(tasks)
   .then(res => {
-    process.exit();
+    process.exit(0);
   })
   .catch(err => {
     process.exit(1);
