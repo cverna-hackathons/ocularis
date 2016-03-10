@@ -211,7 +211,7 @@ function Director(engine) {
    */
   function initializeActivationEvent() {
     _events = _engine.getEvents();
-    _events.addEventListener(_settings && _settings.general && _settings.general.activationKey ? _settings.general.activationKey : 'spacebar', activateComponentInView, activationID);
+    _events.addEventListener(_settings && _settings.general && _settings.general.activationKey ? _settings.general.activationKey : 'spacebar', toggleComponentActivation, activationID);
   }
 
   /**
@@ -219,40 +219,58 @@ function Director(engine) {
    * and align it to a fitting plane visible from camera
    * @return {void}
    */
-  function activateComponentInView() {
+  function toggleComponentActivation() {
     // Check the instance in view and is not already activated
     // If there is one, check it's view frame distance to camera 
     if (_inView.instance && !_inView.instance.activated) {
-      (function () {
-        var fitting = Plane(_inView.instance.frame, _camera);
-        var fittingPlane = fitting.object;
-        var _cameraLookAt = cameraLookAt();
-        var cameraPos = _camera.position;
-        var shiftVector = _cameraLookAt.applyQuaternion(_camera.quaternion).multiplyScalar(fitting.zDistance);
-
-        // Add the dummy fitting plane to scene
-        _scene.add(fittingPlane);
-        // Move and rotate the fitting plane
-        fittingPlane.position.addVectors(cameraPos, shiftVector);
-        fittingPlane.rotation.copy(_camera.rotation);
-
-        console.log('shiftVector:', shiftVector);
-        console.log('fitting:', fitting);
-        console.log('_inView', _inView);
-
-        // Get the distance and rotation relations between fitting plane and frame
-        var transformRelation = getTransformRelation(_inView.instance.frame, fittingPlane, 1);
-
-        moveTo(_inView.instance.component, transformRelation.distanceVec);
-        rotateTo(_inView.instance.component, transformRelation.rotationVec);
-        _inView.instance.activated = true;
-        console.log('transformRelation:', transformRelation);
-
-        setTimeout(function () {
-          return _scene.remove(fittingPlane);
-        }, 3000);
-      })();
+      activateComponent();
+    } else if (_inView.instance && _inView.instance.activated) {
+      deactivateComponent(_inView.instance);
     }
+  }
+
+  /**
+   * Align component to a fitting plane visible from camera, move and rotate
+   * @return {void}
+   */
+  function activateComponent() {
+    var fitting = Plane(_inView.instance.frame, _camera);
+    var fittingPlane = fitting.object;
+    var _cameraLookAt = cameraLookAt();
+    var cameraPos = _camera.position;
+    var shiftVector = _cameraLookAt.applyQuaternion(_camera.quaternion).multiplyScalar(fitting.zDistance);
+
+    // Add the dummy fitting plane to scene
+    _scene.add(fittingPlane);
+    // Move and rotate the fitting plane
+    fittingPlane.position.addVectors(cameraPos, shiftVector);
+    fittingPlane.rotation.copy(_camera.rotation);
+
+    console.log('shiftVector:', shiftVector);
+    console.log('fitting:', fitting);
+    console.log('_inView', _inView);
+
+    // Get the distance and rotation relations between fitting plane and frame
+    var transformRelation = getTransformRelation(_inView.instance.frame, fittingPlane, 1);
+
+    moveTo(_inView.instance.component, transformRelation.distanceVec);
+    rotateTo(_inView.instance.component, transformRelation.rotationVec);
+    _inView.instance.activated = true;
+    console.log('transformRelation:', transformRelation);
+
+    setTimeout(function () {
+      return _scene.remove(fittingPlane);
+    }, 3000);
+  }
+
+  /**
+   * Reset component arrangement to initial position
+   * @param  {Object} Component instance to rearrange
+   * @return {void}
+   */
+  function deactivateComponent(instance) {
+    instance.activated = false;
+    arrangeComponent(instance);
   }
 
   /**
@@ -356,6 +374,8 @@ function Director(engine) {
 
         if (typeof componentConstructor === 'function') {
           var instance = componentConstructor(component.id || Date.now());
+          // Assign order index, will be reused by arrangement
+          instance.idx = component.idx;
           // If component is in preview, do not add to global
           // in order to prevent displacement in preview
           _scene.add(instance.component);
@@ -378,7 +398,7 @@ function Director(engine) {
    * @return {void}
    */
   function arrangeComponent(instance) {
-    var idx = window.ocularisComponents.length;
+    var idx = instance.idx;
     var arrangement = componentArrangementMap[idx];
 
     console.log('idx, arrangement:', idx, arrangement, window.ocularisComponents);
