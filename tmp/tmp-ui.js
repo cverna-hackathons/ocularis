@@ -134,7 +134,6 @@ function rotateTo(object, rotationVec) {
 }
 
 function Director(engine) {
-  
   // Track the camera and scene objects
   // Also add a helper arrow to see what objects camera is directly looking at
   // Add raycaster object to find intersects for the above
@@ -195,17 +194,31 @@ function Director(engine) {
     return this;
   }
 
+  /**
+   * Initialize the objects in scene for preview on settings page, 
+   * also sets the preview mode to true
+   * @param  {THREE.js scene} object
+   * @param  {THREE.js camera} object
+   * @return {void}
+   */
   function initPreview(scene, camera) {
     _scene = scene;
     _camera = camera;
     _previewMode = true;
   }
 
+  /**
+   * Called each frame from outside to check and mark updates to scene
+   * @return {void}
+   */
   function checkForUpdates() {
     selectComponentInView();
   }
 
-  // This will bind key down on spacebar to activating the component in view
+  /**
+   * Will bind key down on spacebar to activating the component in view
+   * @return {void}
+   */
   function initializeActivationEvent() {
     _events = _engine.getEvents();
     _events.addEventListener(
@@ -215,7 +228,11 @@ function Director(engine) {
     );
   }
 
-  
+  /**
+   * Will check the component in view,
+   * and align it to a fitting plane visible from camera
+   * @return {void}
+   */
   function activateComponentInView() {
     // Check the instance in view and is not already activated
     // If there is one, check it's view frame distance to camera  
@@ -244,7 +261,6 @@ function Director(engine) {
 
       moveTo(_inView.instance.component, transformRelation.distanceVec);
       rotateTo(_inView.instance.component, transformRelation.rotationVec);
-
       _inView.instance.activated = true;
       console.log('transformRelation:', transformRelation);
 
@@ -252,13 +268,10 @@ function Director(engine) {
     }
   }
 
-  function findDisplayFrame(componentFrame) {
-    _camera = _camera || engine.getCamera();
-    let zDistance = distanceToCameraFit(componentFrame, _camera);
-
-    console.log('findDisplayFrame | zDistance:', zDistance);
-  }
-
+  /**
+   * Will select the component we are looking at directly
+   * @return {void}
+   */
   function selectComponentInView() {
     // Check which component am I looking at
     // Only capture objects that are no further than 100
@@ -283,6 +296,11 @@ function Director(engine) {
     highlightSelection();
   }
 
+  /**
+   * Checks the _inView variable selects the instance in view, 
+   * This will color the instance as highlighted is used for later events
+   * @return {void}
+   */
   function highlightSelection() {
     window.ocularisComponents.forEach((instance) => {
       if (_inView.instance && instance.id === _inView.instance.id) {
@@ -291,6 +309,11 @@ function Director(engine) {
     });
   }
 
+  /**
+   * Loads settings and component definitions, then adds the components to scene
+   * @param  {function} Callback when all component additions were initiated
+   * @return {void}
+   */
   function addComponents(done) {
     loadSettings((errs, settings) => {
       if (!errs) {
@@ -304,19 +327,40 @@ function Director(engine) {
     });
   }
 
+  /**
+   * Called on start to empty containers for component constructors and instances
+   * @return {void}
+   */
   function initializeComponentContainers() {
     initComponents();
     initComponentConstructors();
   }
 
+  /**
+   * Empties the array into which component instances will be pushed
+   * @return {void}
+   */
   function initComponents() {
     window.ocularisComponents = new Array();
   }
 
+  /**
+   * Empties the array of component constructors,
+   * which get loaded with the component script files
+   * @return {void}
+   */
   function initComponentConstructors() {
     window.ocularisComponentConstructors = new Array();
   }
 
+  /**
+   * Loads the component script and adds it to scene
+   * If director is in preview mode, component is activated automatically
+   * If director is NOT in preview mode, component is arranged
+   * @param  {object} Component attributes
+   * @param  {function} OPTIONAL: Callback for when the adding is complete
+   * @return {void}
+   */
   function addComponent(component, done) {
     console.log('addComponent, _previewMode:', _previewMode)
     if (component.publicPath) {
@@ -341,9 +385,14 @@ function Director(engine) {
         // Add callback so that we know when have we added the component to scene
         if (done) return done();
       });
-    }
+    } else if (done) return done();
   }
 
+  /**
+   * Arranges component according to it's order in scene
+   * @param  {instance: Object} Component instance
+   * @return {void}
+   */
   function arrangeComponent(instance) {
     let idx         = window.ocularisComponents.length;
     let arrangement = componentArrangementMap[idx];
@@ -359,6 +408,11 @@ function Director(engine) {
     }
   }
 
+  /**
+   * Retrieves the component constructor from global array
+   * @param  {name: String} 
+   * @return {function} Component constructor function
+   */
   function getComponentConstructor(name) {
     var _constructor;
     var constructors = (window.ocularisComponentConstructors || []);
