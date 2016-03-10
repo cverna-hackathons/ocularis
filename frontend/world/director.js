@@ -23,12 +23,9 @@ export default function(engine) {
 
   let _previewMode = false;
 
-
   const selectedColor   = '#ff0000';
   const unselectedColor = '#eeeeee';
   const activationID    = 'componentActivation';
-
-
 
   /**
    * Initialize the objects in scene

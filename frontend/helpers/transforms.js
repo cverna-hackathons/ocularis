@@ -7,6 +7,7 @@
  */
 export function rotate(object, axis, radians) {
 
+  let rotMatrix = new THREE.Matrix4();
   //transform string axis type to vector3
   axis = ((axis) => {
     switch(axis) {
@@ -19,7 +20,6 @@ export function rotate(object, axis, radians) {
     }
   })(axis);
 
-  let rotMatrix = new THREE.Matrix4();
   rotMatrix.makeRotationAxis(axis.normalize(), radians);
   rotMatrix.multiply(object.matrix);
   object.matrix = rotMatrix;
