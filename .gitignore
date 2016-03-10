@@ -1,5 +1,7 @@
-config/apis.json
-config/environments.json
+app/config/apis.json
+app/config/environments.json
+app/config/database.json
+node_modules/
 node_modules/
 public/js/ui.js
 public/js/vr.js

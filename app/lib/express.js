@@ -10,12 +10,13 @@ var bodyParser = require('body-parser');
 var compress = require('compression');
 var methodOverride = require('method-override');
 var exphbs  = require('express-handlebars');
+var models = require('../models');
 
 module.exports = function(app, config) {
   var env = process.env.NODE_ENV || 'development';
   app.locals.ENV = env;
   app.locals.ENV_DEVELOPMENT = env == 'development';
-  
+
   app.engine('handlebars', exphbs({
     layoutsDir: config.root + '/app/views/layouts/',
     defaultLayout: 'main',
@@ -38,17 +39,18 @@ module.exports = function(app, config) {
   app.use(express.static(config.root + '/public'));
   app.use(methodOverride());
 
-  var controllers = glob.sync(config.root + '/app/controllers/*.js');
-  controllers.forEach(function (controller) {
-    require(controller)(app);
-  });
+  //setup authentification
+  require('./auth/init')(app);
+
+  //setup routes
+  require('../controllers/routes')(app);
 
   app.use(function (req, res, next) {
     var err = new Error('Not Found');
     err.status = 404;
     next(err);
   });
-  
+
   if(app.get('env') === 'development'){
     app.use(function (err, req, res, next) {
       res.status(err.status || 500);
@@ -69,8 +71,11 @@ module.exports = function(app, config) {
       });
   });
 
-  app.listen(config.port, () => {
-    console.log(`OCULARIS Listening on port: ${config.port}.`);
+  //automatic creation of tables
+  models.sequelize.sync().then( () => {
+    app.listen(config.port, () => {
+      console.log(`OCULARIS Listening on port: ${config.port}.`);
+    });
   });
 
 };
