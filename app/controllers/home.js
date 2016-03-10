@@ -21,6 +21,20 @@ route.get('/logout', (req, res) => {
   res.redirect('/');
 });
 
+route.get('/vr', (req, res) => {
+  res.render('scene', { 
+    title: 'Ocularis - VR world',
+    layout: 'vr'
+  });
+});
+
+// Load structure for the user, WIP
+route.get('/load_settings', (req, res) => {
+  settingsLoader.getSettings(null, (err, settings) => {
+    res.send({ settings: settings });
+  });
+});
+
 route.post('/login', passport.authenticate('local', {
   successRedirect: '/',
   failureRedirect: '/login'

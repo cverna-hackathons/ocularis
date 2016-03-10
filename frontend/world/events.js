@@ -41,7 +41,7 @@ export default function() {
   }
 
   function setTriggers () {
-    $("body").on("keydown", trackKeys);
+    $('body').on('keydown', trackKeys);
   }
 
   function triggerKeyEvent(key) {

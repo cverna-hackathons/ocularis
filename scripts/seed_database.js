@@ -12,7 +12,7 @@ let tasks = [
     }
   }),
 
-  models.User.create({
+  models.User.findOrCreate({
     where: {
       username: 'Pelo',
       email: 'pelo@ocularis.com',
