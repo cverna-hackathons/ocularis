@@ -30,7 +30,8 @@ export function rotate(object, axis, radians) {
  * Returns indices of object geometry faces that are facing the OCULARIS camera
  * @param  {THREE.Object} objectOne
  * @param  {THREE.Camera} camera
- * @return {??} indices
+ * @return {Object} Value for angle to camera, 
+                    and faceIndices for indexes of faces facing the camera
  */
 export function getFacesToCamera(objectOne, camera) {
   let aligned = { value: null, faceIndices: [] };

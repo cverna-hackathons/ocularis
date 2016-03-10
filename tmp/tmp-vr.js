@@ -80,6 +80,31 @@ function Plane(frame, camera) {
   };
 }
 
+const initialDistance = 2.5;
+const angleShift      = (Math.PI / 180 * 36);
+const xShift          = (Math.sin(angleShift) * initialDistance);
+const zShift          = (Math.cos(angleShift) * -initialDistance);
+// Serves to place and rotate the component instances into sectors
+// of ?semi-dodecahedron (6 max for now?), may want to generate this later
+const componentArrangementMap = [
+  // Initial front facing position
+  { 
+    position: new THREE.Vector3(0, 0, -initialDistance), 
+    rotation: new THREE.Vector3(0, 0, 0) 
+  },
+  // Front left
+  { 
+    position: new THREE.Vector3(xShift, 0, zShift), 
+    rotation: new THREE.Vector3(0, -angleShift, 0) 
+  },
+  // Front right
+  { 
+    position: new THREE.Vector3(-xShift, 0, zShift), 
+    rotation: new THREE.Vector3(0, angleShift, 0) 
+  }
+];
+
+
 /**
  * Get the standard camera vector looking down the z axis
  * @return {THREE.Vector3} Camera initial lookat vector
@@ -149,33 +174,12 @@ function Director(engine) {
 
   let _previewMode = false;
 
-  const initialDistance = 2.5;
-  const angleShift      = (Math.PI / 180 * 36);
-  const xShift          = (Math.sin(angleShift) * initialDistance);
-  const zShift          = (Math.cos(angleShift) * -initialDistance);
+
   const selectedColor   = '#ff0000';
   const unselectedColor = '#eeeeee';
   const activationID    = 'componentActivation';
 
-  // Serves to place and rotate the component instances into sectors
-  // of ?semi-dodecahedron (6 max for now?), may want to generate this later
-  const componentArrangementMap = [
-    // Initial front facing position
-    { 
-      position: new THREE.Vector3(0, 0, -initialDistance), 
-      rotation: new THREE.Vector3(0, 0, 0) 
-    },
-    // Front left
-    { 
-      position: new THREE.Vector3(xShift, 0, zShift), 
-      rotation: new THREE.Vector3(0, -angleShift, 0) 
-    },
-    // Front right
-    { 
-      position: new THREE.Vector3(-xShift, 0, zShift), 
-      rotation: new THREE.Vector3(0, angleShift, 0) 
-    }
-  ];
+
 
   /**
    * Initialize the objects in scene

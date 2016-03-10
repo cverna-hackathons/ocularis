@@ -60,6 +60,29 @@ function Plane(frame, camera) {
   };
 }
 
+var initialDistance = 2.5;
+var angleShift = Math.PI / 180 * 36;
+var xShift = Math.sin(angleShift) * initialDistance;
+var zShift = Math.cos(angleShift) * -initialDistance;
+// Serves to place and rotate the component instances into sectors
+// of ?semi-dodecahedron (6 max for now?), may want to generate this later
+var componentArrangementMap = [
+// Initial front facing position
+{
+  position: new THREE.Vector3(0, 0, -initialDistance),
+  rotation: new THREE.Vector3(0, 0, 0)
+},
+// Front left
+{
+  position: new THREE.Vector3(xShift, 0, zShift),
+  rotation: new THREE.Vector3(0, -angleShift, 0)
+},
+// Front right
+{
+  position: new THREE.Vector3(-xShift, 0, zShift),
+  rotation: new THREE.Vector3(0, angleShift, 0)
+}];
+
 /**
  * Get the standard camera vector looking down the z axis
  * @return {THREE.Vector3} Camera initial lookat vector
@@ -132,32 +155,9 @@ function Director(engine) {
 
   var _previewMode = false;
 
-  var initialDistance = 2.5;
-  var angleShift = Math.PI / 180 * 36;
-  var xShift = Math.sin(angleShift) * initialDistance;
-  var zShift = Math.cos(angleShift) * -initialDistance;
   var selectedColor = '#ff0000';
   var unselectedColor = '#eeeeee';
   var activationID = 'componentActivation';
-
-  // Serves to place and rotate the component instances into sectors
-  // of ?semi-dodecahedron (6 max for now?), may want to generate this later
-  var componentArrangementMap = [
-  // Initial front facing position
-  {
-    position: new THREE.Vector3(0, 0, -initialDistance),
-    rotation: new THREE.Vector3(0, 0, 0)
-  },
-  // Front left
-  {
-    position: new THREE.Vector3(xShift, 0, zShift),
-    rotation: new THREE.Vector3(0, -angleShift, 0)
-  },
-  // Front right
-  {
-    position: new THREE.Vector3(-xShift, 0, zShift),
-    rotation: new THREE.Vector3(0, angleShift, 0)
-  }];
 
   /**
    * Initialize the objects in scene

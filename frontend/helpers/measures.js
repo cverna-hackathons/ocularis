@@ -1,3 +1,28 @@
+const initialDistance = 2.5;
+const angleShift      = (Math.PI / 180 * 36);
+const xShift          = (Math.sin(angleShift) * initialDistance);
+const zShift          = (Math.cos(angleShift) * -initialDistance);
+// Serves to place and rotate the component instances into sectors
+// of ?semi-dodecahedron (6 max for now?), may want to generate this later
+export const componentArrangementMap = [
+  // Initial front facing position
+  { 
+    position: new THREE.Vector3(0, 0, -initialDistance), 
+    rotation: new THREE.Vector3(0, 0, 0) 
+  },
+  // Front left
+  { 
+    position: new THREE.Vector3(xShift, 0, zShift), 
+    rotation: new THREE.Vector3(0, -angleShift, 0) 
+  },
+  // Front right
+  { 
+    position: new THREE.Vector3(-xShift, 0, zShift), 
+    rotation: new THREE.Vector3(0, angleShift, 0) 
+  }
+];
+
+
 /**
  * Get rotation matrix that can be used to align a plane to face the camera
  * @param  {Object THREE.Plane} Frame that bounds the object viewable area
