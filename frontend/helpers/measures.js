@@ -1,4 +1,4 @@
-const initialDistance = 2.5;
+const initialDistance = 5;
 const angleShift      = (Math.PI / 180 * 36);
 const xShift          = (Math.sin(angleShift) * initialDistance);
 const zShift          = (Math.cos(angleShift) * -initialDistance);

@@ -60,7 +60,7 @@ function Plane(frame, camera) {
   };
 }
 
-var initialDistance = 2.5;
+var initialDistance = 5;
 var angleShift = Math.PI / 180 * 36;
 var xShift = Math.sin(angleShift) * initialDistance;
 var zShift = Math.cos(angleShift) * -initialDistance;
@@ -133,12 +133,115 @@ function loadSettings(done) {
   });
 }
 
-function moveTo(object, distanceVec) {
+/**
+ * Moves (NO animation) object to a distance vector (by adding the position and distance vectors)
+ * @param  {THREE.Object} object that is to be moved
+ * @param  {THREE.Vector3} Distance vector
+ * @return {void} 
+ */
+function moveBy(object, distanceVec) {
   object.position.add(distanceVec);
 }
 
-function rotateTo(object, rotationVec) {
-  object.rotation.copy(rotationVec);
+/**
+ * Rotates (NO animation) object to given rotation vector
+ * @param  {THREE.Object} object that is to be moved
+ * @param  {THREE.Vector3} Rotation vector
+ * @return {void} 
+ */
+function rotateBy(object, rotationVec) {
+  var rot = object.rotation;
+
+  object.rotation.set(rot.x + rotationVec.x, rot.y + rotationVec.y, rot.z + rotationVec.z);
+}
+
+var _animations = {};
+
+function Animate(object) {
+  var finalCallback = null;
+  var interimCallback = null;
+  var transforms = [];
+  var id = Date.now() + '-' + object.id;
+
+  console.log('init anim');
+
+  var context = {
+    id: id,
+    start: function start(options) {
+      console.log('starting anim');
+      transforms.push(animatedTransform(object, options.transformFn, options.deltaVec, options.frameLength));
+      _animations[id] = context;
+      return context;
+    },
+    next: function next() {
+      var formerLen = transforms.length;
+
+      transforms = transforms.filter(function (transform) {
+        return transform.next();
+      });
+      if (formerLen > transforms.length && typeof interimCallback === 'function') {
+        interimCallback(transforms.length);
+      }
+      return transforms.length > 0;
+    },
+    interim: function interim(fn) {
+      if (typeof fn === 'function') interimCallback = fn;
+    },
+    complete: function complete() {
+      delete _animations[id];
+      if (typeof finalCallback === 'function') return finalCallback();
+    },
+    then: function then(fn) {
+      if (typeof fn === 'function') finalCallback = fn;
+    }
+  };
+
+  return context;
+}
+
+function updateAnimations() {
+  for (var id in _animations) {
+    if (_animations.hasOwnProperty(id)) {
+      var anim = _animations[id];
+      if (anim.next() === false) {
+        anim.complete();
+      }
+    }
+  }
+}
+
+/**
+ * Transforms (animated) to a vector 
+ * (by transforming initial vectors with transform function)
+ * @param  {THREE.Object} object that is to be moved
+ * @param  {Function} Function that moves, rotates or scales object
+ * @param  {THREE.Vector3} Change vector
+ * @param  {Integer} Animation frame length
+ * @return {Object} Returns iterable object 
+ *                  that is used for animation stepping or cancellation 
+ */
+function animatedTransform(object, transformFn, deltaVec, frameLength) {
+  frameLength = frameLength || 60;
+
+  // let initialPosition  = object.position.clone();
+  var moveIncrementVec = deltaVec.divideScalar(frameLength);
+  var framesLeft = frameLength + 0;
+  var animStarted = false;
+
+  return {
+    id: parseInt(Math.random() * 10000).toString(),
+    object: object,
+    started: animStarted,
+    next: function next() {
+      framesLeft--;
+      if (framesLeft > 0) {
+        animStarted = true;
+        transformFn(object, deltaVec);
+        return true;
+      } else return false;
+    }
+    // , cancel: () => object.position.copy(initialPosition)
+  };
 }
 
 function Director(engine) {
@@ -153,6 +256,8 @@ function Director(engine) {
       _settings = undefined;
   // Create a shared object to assign instance in view
   var _inView = {};
+
+  var _animations = {};
 
   var _engine = engine;
 
@@ -202,6 +307,7 @@ function Director(engine) {
    */
   function checkForUpdates() {
     selectComponentInView();
+    updateAnimations();
   }
 
   /**
@@ -221,9 +327,9 @@ function Director(engine) {
   function toggleComponentActivation() {
     // Check the instance in view and is not already activated
     // If there is one, check it's view frame distance to camera 
-    if (_inView.instance && !_inView.instance.activated) {
+    if (_inView.instance && !_inView.instance._activated) {
       activateComponent();
-    } else if (_inView.instance && _inView.instance.activated) {
+    } else if (_inView.instance && _inView.instance._activated) {
       deactivateComponent(_inView.instance);
     } else console.log('No component in view.');
   }
@@ -233,6 +339,7 @@ function Director(engine) {
    * @return {void}
    */
   function activateComponent() {
+    var component = _inView.instance.component;
     var fitting = Plane(_inView.instance.frame, _camera);
     var fittingPlane = fitting.object;
     var _cameraLookAt = cameraLookAt();
@@ -249,20 +356,40 @@ function Director(engine) {
     console.log('fitting:', fitting);
     console.log('_inView', _inView);
 
-    _inView.instance.component.updateMatrixWorld();
+    component.updateMatrixWorld();
     // Get the distance and rotation relations between fitting plane and frame
     var transformRelation = getTransformRelation(_inView.instance.frame, fittingPlane, 1);
 
     // Negate on the z axis, since we are coming closer to camera
     transformRelation.distanceVec.z *= -1;
-    moveTo(_inView.instance.component, transformRelation.distanceVec);
-    rotateTo(_inView.instance.component, transformRelation.rotationVec);
-    _inView.instance.activated = true;
+
+    Animate(component).start({
+      deltaVec: transformRelation.distanceVec, transformFn: moveBy
+    }).start({
+      deltaVec: transformRelation.rotationVec, transformFn: rotateBy
+    }).then(function () {
+      console.log('animation move ended.');
+    });
+
+    _inView.instance._activated = true;
     console.log('transformRelation:', transformRelation);
 
+    renderActivationData();
     setTimeout(function () {
       return _scene.remove(fittingPlane);
     }, 3000);
+  }
+
+  function renderActivationData() {
+    // Get initial data from provider
+    // Render it to drawables
+    _inView.instance.draw([{
+      drawableId: 'main',
+      content: 'Initial main text for instance of ' + _inView.instance.id + '.',
+      type: 'text',
+      bgColor: 'rgba(100, 100, 100, 0.5)',
+      textColor: '#ffffff'
+    }]);
   }
 
   /**
@@ -271,8 +398,9 @@ function Director(engine) {
    * @return {void}
    */
   function deactivateComponent(instance) {
-    instance.activated = false;
-    arrangeComponent(instance);
+    instance.deactivate();
+    instance._activated = false;
+    arrangeComponent(instance, true);
   }
 
   /**
@@ -369,7 +497,6 @@ function Director(engine) {
    * @return {void}
    */
   function addComponent(component, done) {
-    console.log('addComponent, _previewMode:', _previewMode);
     if (component.publicPath) {
       $.getScript(component.publicPath, function (data, textStatus, jqxhr) {
         var componentConstructor = getComponentConstructor(component.name);
@@ -399,16 +526,23 @@ function Director(engine) {
    * @param  {instance: Object} Component instance
    * @return {void}
    */
-  function arrangeComponent(instance) {
+  function arrangeComponent(instance, animated) {
     var idx = instance.idx;
     var arrangement = componentArrangementMap[idx];
 
     console.log('idx, arrangement:', idx, arrangement, window.ocularisComponents);
     if (arrangement) {
-      var pos = arrangement.position;
-      var rot = arrangement.rotation;
+      var pos = arrangement.position.clone();
+      var rot = arrangement.rotation.clone();
 
-      instance.component.position.copy(pos);
+      if (animated) {
+        Animate(instance.component).start({
+          transformFn: moveBy,
+          deltaVec: pos
+        });
+      } else {
+        instance.component.position.copy(pos);
+      }
       instance.component.rotation.set(rot.x, rot.y, rot.z);
       window.ocularisComponents.push(instance);
     }

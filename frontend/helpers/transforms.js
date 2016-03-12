@@ -59,10 +59,100 @@ export function getFacesToCamera(objectOne, camera) {
   return aligned.faceIndices;
 }
 
-export function moveTo(object, distanceVec) {
+/**
+ * Moves (NO animation) object to a distance vector (by adding the position and distance vectors)
+ * @param  {THREE.Object} object that is to be moved
+ * @param  {THREE.Vector3} Distance vector
+ * @return {void} 
+ */
+export function moveBy(object, distanceVec) {
   object.position.add(distanceVec);
 }
 
-export function rotateTo(object, rotationVec) {
-  object.rotation.copy(rotationVec);
+/**
+ * Rotates (NO animation) object to given rotation vector
+ * @param  {THREE.Object} object that is to be moved
+ * @param  {THREE.Vector3} Rotation vector
+ * @return {void} 
+ */
+export function rotateBy(object, rotationVec) {
+  let rot = object.rotation;
+
+  object.rotation.set(
+    rot.x + rotationVec.x, rot.y + rotationVec.y, rot.z + rotationVec.z
+  );
+}
+
+/**
+ * Moves object (animated) to a distance vector (by adding the position and distance vectors)
+ * @param  {THREE.Object} object that is to be moved
+ * @param  {THREE.Vector3} Distance vector
+ * @param  {Integer} Animation frame length
+ * @return {Object} Returns iterable object 
+ *                  that is used for animation stepping or cancellation 
+ */
+export function animatedMoveTo(object, distanceVec, frameLength) {
+
+  frameLength = (frameLength || 60);
+
+  let initialPosition  = object.position.clone();
+  let moveIncrementVec = distanceVec.divideScalar(frameLength);
+  let framesLeft       = frameLength + 0;
+  let animStarted      = false;
+  
+  return {
+    id: (Date.now() + '-move'),
+    name: 'move',
+    object: object,
+    started: animStarted,
+    next: () => {
+      framesLeft--;
+      if (framesLeft > 0) {
+        animStarted = true;
+        moveBy(object, moveIncrementVec);
+        return true;
+      }
+      else return false;
+    },
+    cancel: () => {
+      object.position.copy(initialPosition);
+    }
+  };
+}
+
+/**
+ * Rotates object (animated) to a vector (by adding the position and distance vectors)
+ * @param  {THREE.Object} object that is to be moved
+ * @param  {THREE.Vector3} Distance vector
+ * @param  {Integer} Animation frame length
+ * @return {Object} Returns iterable object 
+ *                  that is used for animation stepping or cancellation 
+ */
+export function animatedRotationTo(object, rotationVec, frameLength) {
+
+  frameLength = (frameLength || 60);
+
+  let initialRotation       = object.rotation.clone();
+  let rotationIncrementVec  = rotationVec.divideScalar(frameLength);
+  let framesLeft            = frameLength + 0;
+  let animStarted           = false;
+  
+  return {
+    id: (Date.now() + '-rotation'),
+    name: 'rotation',
+    object: object,
+    started: animStarted,
+    next: () => {
+      framesLeft--;
+      if (framesLeft > 0) {
+        animStarted = true;
+        rotateBy(object, rotationIncrementVec);
+        return true;
+      }
+      else return false;
+    },
+    cancel: () => {
+      object.rotation.copy(initialRotation);
+    }
+  };
 }

@@ -9,7 +9,8 @@ import {
   getTransformRelation
 } from '../helpers/measures';
 import { loadSettings } from '../helpers/routes';
-import { moveTo, rotateTo } from '../helpers/transforms';
+import { rotateBy, moveBy } from '../helpers/transforms';
+import { Animate, updateAnimations } from '../helpers/animation';
 
 export default function(engine) {
   // Track the camera and scene objects
@@ -18,6 +19,8 @@ export default function(engine) {
   let _scene, _camera, _arrow, _raycaster, _events, _settings;
   // Create a shared object to assign instance in view
   let _inView = {};
+
+  let _animations = {};
 
   let _engine = engine;
 
@@ -67,6 +70,7 @@ export default function(engine) {
    */
   function checkForUpdates() {
     selectComponentInView();
+    updateAnimations();
   }
 
   /**
@@ -90,10 +94,10 @@ export default function(engine) {
   function toggleComponentActivation() {
     // Check the instance in view and is not already activated
     // If there is one, check it's view frame distance to camera  
-    if (_inView.instance && !_inView.instance.activated) {
+    if (_inView.instance && !_inView.instance._activated) {
       activateComponent();
     }
-    else if (_inView.instance && _inView.instance.activated) {
+    else if (_inView.instance && _inView.instance._activated) {
       deactivateComponent(_inView.instance);
     }
     else console.log('No component in view.');
@@ -104,6 +108,7 @@ export default function(engine) {
    * @return {void}
    */
   function activateComponent() {
+    let component = _inView.instance.component;
     let fitting = Plane(_inView.instance.frame, _camera);
     let fittingPlane = fitting.object;
     let _cameraLookAt = cameraLookAt();
@@ -122,19 +127,42 @@ export default function(engine) {
     console.log('fitting:', fitting);
     console.log('_inView', _inView);
 
-    _inView.instance.component.updateMatrixWorld();
+    component.updateMatrixWorld();
     // Get the distance and rotation relations between fitting plane and frame
     let transformRelation = 
       getTransformRelation(_inView.instance.frame, fittingPlane, 1);
 
     // Negate on the z axis, since we are coming closer to camera
     transformRelation.distanceVec.z *= -1;
-    moveTo(_inView.instance.component, transformRelation.distanceVec);
-    rotateTo(_inView.instance.component, transformRelation.rotationVec);
-    _inView.instance.activated = true;
+
+    Animate(component)
+      .start({
+        deltaVec: transformRelation.distanceVec, transformFn: moveBy
+      })
+      .start({
+        deltaVec: transformRelation.rotationVec, transformFn: rotateBy 
+      })
+    .then(() => {
+      console.log('animation move ended.');
+    });
+
+    _inView.instance._activated = true;
     console.log('transformRelation:', transformRelation);
 
+    renderActivationData();
     setTimeout(() => _scene.remove(fittingPlane), 3000);
+  }
+
+  function renderActivationData() {
+    // Get initial data from provider
+    // Render it to drawables
+    _inView.instance.draw([{
+      drawableId: 'main',
+      content: 'Initial main text for instance of ' + _inView.instance.id + '.',
+      type: 'text',
+      bgColor: 'rgba(100, 100, 100, 0.5)',
+      textColor: '#ffffff'
+    }]);
   }
 
   /**
@@ -143,8 +171,9 @@ export default function(engine) {
    * @return {void}
    */
   function deactivateComponent(instance) {
-    instance.activated = false;
-    arrangeComponent(instance);
+    instance.deactivate();
+    instance._activated = false;
+    arrangeComponent(instance, true);
   }
 
   /**
@@ -241,7 +270,6 @@ export default function(engine) {
    * @return {void}
    */
   function addComponent(component, done) {
-    console.log('addComponent, _previewMode:', _previewMode)
     if (component.publicPath) {
       $.getScript(component.publicPath, (data, textStatus, jqxhr) => {
         var componentConstructor = getComponentConstructor(component.name);
@@ -274,16 +302,23 @@ export default function(engine) {
    * @param  {instance: Object} Component instance
    * @return {void}
    */
-  function arrangeComponent(instance) {
+  function arrangeComponent(instance, animated) {
     let idx         = instance.idx;
     let arrangement = componentArrangementMap[idx];
     
     console.log('idx, arrangement:', idx, arrangement, window.ocularisComponents);
     if (arrangement) {
-      let pos = arrangement.position;
-      let rot = arrangement.rotation;
+      let pos = arrangement.position.clone();
+      let rot = arrangement.rotation.clone();
       
-      instance.component.position.copy(pos);
+      if (animated) {
+        Animate(instance.component).start({
+          transformFn: moveBy,
+          deltaVec: pos
+        });
+      } else {
+        instance.component.position.copy(pos);
+      }
       instance.component.rotation.set(rot.x, rot.y, rot.z);
       window.ocularisComponents.push(instance);
     }
