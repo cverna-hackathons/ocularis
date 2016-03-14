@@ -1,14 +1,19 @@
 let _animations = {};
 
+/**
+ * Object animation setup function 
+ * @param  {THREE.Object} object that is to be animated
+ * @return {Object} Returns iterable object 
+ *                  that is used for animation stepping or cancellation 
+ */
 export function Animate(object) {
+  
   let finalCallback = null;
   let interimCallback = null;
   let transforms    = [];
   let id            = (
     Date.now() + '-' + object.id
   );
-
-  console.log('init anim');
 
   let context = {
     id,
@@ -44,6 +49,10 @@ export function Animate(object) {
   return context;
 }
 
+/**
+ * Nudges all registered animations 
+ * @return {void}
+ */
 export function updateAnimations() {
   for (var id in _animations) {
     if (_animations.hasOwnProperty(id)) {

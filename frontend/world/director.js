@@ -20,8 +20,6 @@ export default function(engine) {
   // Create a shared object to assign instance in view
   let _inView = {};
 
-  let _animations = {};
-
   let _engine = engine;
 
   let _previewMode = false;
@@ -144,12 +142,11 @@ export default function(engine) {
       })
     .then(() => {
       console.log('animation move ended.');
+      renderActivationData();
     });
 
     _inView.instance._activated = true;
     console.log('transformRelation:', transformRelation);
-
-    renderActivationData();
     setTimeout(() => _scene.remove(fittingPlane), 3000);
   }
 
@@ -160,8 +157,8 @@ export default function(engine) {
       drawableId: 'main',
       content: 'Initial main text for instance of ' + _inView.instance.id + '.',
       type: 'text',
-      bgColor: 'rgba(100, 100, 100, 0.5)',
-      textColor: '#ffffff'
+      bgColor: 'rgba(100, 100, 100, 0.3)',
+      textColor: '#ffff00'
     }]);
   }
 
@@ -194,7 +191,6 @@ export default function(engine) {
     // Get the component frames intersecting the ray
     window.ocularisComponents.forEach((instance, instanceIdx) => {
       let intersections = _raycaster.intersectObject(instance.frame);
-      
       // Get the closest component in intersection
       if (intersections.length && intersections[0].distance < _inView.distance) {
         _inView.distance  = intersections[0].distance;

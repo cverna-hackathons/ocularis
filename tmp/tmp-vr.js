@@ -183,15 +183,20 @@ function loadSettings(done) {
 
 let _animations = {};
 
+/**
+ * Object animation setup function 
+ * @param  {THREE.Object} object that is to be animated
+ * @return {Object} Returns iterable object 
+ *                  that is used for animation stepping or cancellation 
+ */
 function Animate(object) {
+  
   let finalCallback = null;
   let interimCallback = null;
   let transforms    = [];
   let id            = (
     Date.now() + '-' + object.id
   );
-
-  console.log('init anim');
 
   let context = {
     id,
@@ -227,6 +232,10 @@ function Animate(object) {
   return context;
 }
 
+/**
+ * Nudges all registered animations 
+ * @return {void}
+ */
 function updateAnimations() {
   for (var id in _animations) {
     if (_animations.hasOwnProperty(id)) {
@@ -281,8 +290,6 @@ function Director(engine) {
   let _scene, _camera, _arrow, _raycaster, _events, _settings;
   // Create a shared object to assign instance in view
   let _inView = {};
-
-  let _animations = {};
 
   let _engine = engine;
 
@@ -406,12 +413,11 @@ function Director(engine) {
       })
     .then(() => {
       console.log('animation move ended.');
+      renderActivationData();
     });
 
     _inView.instance._activated = true;
     console.log('transformRelation:', transformRelation);
-
-    renderActivationData();
     setTimeout(() => _scene.remove(fittingPlane), 3000);
   }
 
@@ -422,8 +428,8 @@ function Director(engine) {
       drawableId: 'main',
       content: 'Initial main text for instance of ' + _inView.instance.id + '.',
       type: 'text',
-      bgColor: 'rgba(100, 100, 100, 0.5)',
-      textColor: '#ffffff'
+      bgColor: 'rgba(100, 100, 100, 0.3)',
+      textColor: '#ffff00'
     }]);
   }
 
@@ -456,7 +462,6 @@ function Director(engine) {
     // Get the component frames intersecting the ray
     window.ocularisComponents.forEach((instance, instanceIdx) => {
       let intersections = _raycaster.intersectObject(instance.frame);
-      
       // Get the closest component in intersection
       if (intersections.length && intersections[0].distance < _inView.distance) {
         _inView.distance  = intersections[0].distance;
