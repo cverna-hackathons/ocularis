@@ -320,6 +320,7 @@ function Director(engine) {
    * @return {void}
    */
   function initializeActivationEvent() {
+    _debug = _settings.debug;
     _events = _engine.getEvents();
     _events.addEventListener(_settings && _settings.general && _settings.general.activationKey ? _settings.general.activationKey : 'spacebar', toggleComponentActivation, activationID);
   }
@@ -425,7 +426,7 @@ function Director(engine) {
     _inView.instance = null;
     _camera = engine.getCamera();
     // Show arrow helper in the middle of view
-    if (_settings.debug) addViewHelper(_scene);
+    if (_debug) addViewHelper(_scene);
     // Send a ray through the middle of camera view
     _raycaster.setFromCamera({ x: 0, y: 0 }, _camera);
     // Get the component frames intersecting the ray

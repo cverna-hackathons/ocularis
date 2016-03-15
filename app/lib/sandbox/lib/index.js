@@ -2,12 +2,12 @@
 
 function sandbox() {
   
-  var path      = require('path');
-  var cProc     = require('child_process');
-  var fs        = require('fs');
-  var async     = require('async');
-  var _         = require('underscore');
-  var buildDir  = path.resolve(__dirname, '../../../../public/sandbox');
+  let path      = require('path');
+  let cProc     = require('child_process');
+  let fs        = require('fs');
+  let async     = require('async');
+  let _         = require('underscore');
+  let buildDir  = path.resolve(__dirname, '../../../../public/sandbox');
 
   function createComponentFile(component, done) {
     
