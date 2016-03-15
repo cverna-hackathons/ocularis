@@ -18,7 +18,6 @@ export function Animate(object) {
   let context = {
     id,
     start: (options) => {
-      console.log('starting anim');
       transforms.push(animatedTransform(
         object, options.transformFn, options.deltaVec, options.frameLength
       ));
@@ -81,16 +80,13 @@ export function animatedTransform(object, transformFn, deltaVec, frameLength) {
   // let initialPosition  = object.position.clone();
   let moveIncrementVec = deltaVec.divideScalar(frameLength);
   let framesLeft       = frameLength + 0;
-  let animStarted      = false;
   
   return {
     id: parseInt(Math.random() * 10000).toString(),
     object: object,
-    started: animStarted,
     next: () => {
       framesLeft--;
-      if (framesLeft > 0) {
-        animStarted = true;
+      if (framesLeft > 0 && deltaVec.length() !== 0) {
         transformFn(object, deltaVec);
         return true;
       }

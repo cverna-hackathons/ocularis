@@ -201,7 +201,6 @@ function Animate(object) {
   let context = {
     id,
     start: (options) => {
-      console.log('starting anim');
       transforms.push(animatedTransform(
         object, options.transformFn, options.deltaVec, options.frameLength
       ));
@@ -264,16 +263,13 @@ function animatedTransform(object, transformFn, deltaVec, frameLength) {
   // let initialPosition  = object.position.clone();
   let moveIncrementVec = deltaVec.divideScalar(frameLength);
   let framesLeft       = frameLength + 0;
-  let animStarted      = false;
   
   return {
     id: parseInt(Math.random() * 10000).toString(),
     object: object,
-    started: animStarted,
     next: () => {
       framesLeft--;
-      if (framesLeft > 0) {
-        animStarted = true;
+      if (framesLeft > 0 && deltaVec.length() !== 0) {
         transformFn(object, deltaVec);
         return true;
       }
@@ -287,7 +283,7 @@ function Director(engine) {
   // Track the camera and scene objects
   // Also add a helper arrow to see what objects camera is directly looking at
   // Add raycaster object to find intersects for the above
-  let _scene, _camera, _arrow, _raycaster, _events, _settings;
+  let _scene, _camera, _arrow, _raycaster, _events, _settings, _fitting, _debug;
   // Create a shared object to assign instance in view
   let _inView = {};
 
@@ -372,34 +368,45 @@ function Director(engine) {
     else console.log('No component in view.');
   }
 
-  /**
-   * Align component to a fitting plane visible from camera, move and rotate
-   * @return {void}
-   */
-  function activateComponent() {
-    let component = _inView.instance.component;
-    let fitting = Plane(_inView.instance.frame, _camera);
-    let fittingPlane = fitting.object;
+  function setFitting() {
+    _fitting = Plane(_inView.instance.frame, _camera);
+    
+    let fittingPlane = _fitting.object;    
     let _cameraLookAt = cameraLookAt();
     let cameraPos    = _camera.position;
     let shiftVector  = _cameraLookAt
         .applyQuaternion(_camera.quaternion)
-        .multiplyScalar(fitting.zDistance);
+        .multiplyScalar(_fitting.zDistance);
     
     // Add the dummy fitting plane to scene
     _scene.add(fittingPlane);
     // Move and rotate the fitting plane
     fittingPlane.position.addVectors(cameraPos, shiftVector);
     fittingPlane.rotation.copy(_camera.rotation);
-
     console.log('shiftVector:', shiftVector);
-    console.log('fitting:', fitting);
-    console.log('_inView', _inView);
+    console.log('_fitting:', _fitting);
 
+    setTimeout(() => _scene.remove(fittingPlane), 3000);
+  }
+
+  /**
+   * Align component to a fitting plane visible from camera, move and rotate
+   * @return {void}
+   */
+  function activateComponent() {
+    let component = _inView.instance.component;
+
+    console.log('_inView', _inView);
+    // Set up fitting for animation 
+    setFitting();
+
+    // Update transform matrix according to world, 
+    // so we get the correct transform relation
     component.updateMatrixWorld();
+    
     // Get the distance and rotation relations between fitting plane and frame
     let transformRelation = 
-      getTransformRelation(_inView.instance.frame, fittingPlane, 1);
+      getTransformRelation(_inView.instance.frame, _fitting.object, 1);
 
     // Negate on the z axis, since we are coming closer to camera
     transformRelation.distanceVec.z *= -1;
@@ -411,14 +418,11 @@ function Director(engine) {
       .start({
         deltaVec: transformRelation.rotationVec, transformFn: rotateBy 
       })
-    .then(() => {
-      console.log('animation move ended.');
-      renderActivationData();
-    });
+    .then(renderActivationData);
 
     _inView.instance._activated = true;
     console.log('transformRelation:', transformRelation);
-    setTimeout(() => _scene.remove(fittingPlane), 3000);
+
   }
 
   function renderActivationData() {
@@ -429,7 +433,7 @@ function Director(engine) {
       content: 'Initial main text for instance of ' + _inView.instance.id + '.',
       type: 'text',
       bgColor: 'rgba(100, 100, 100, 0.3)',
-      textColor: '#ffff00'
+      textColor: '#ffffff'
     }]);
   }
 
@@ -455,8 +459,7 @@ function Director(engine) {
     _inView.instance = null;
     _camera = engine.getCamera();
     // Show arrow helper in the middle of view
-    if (_arrow) _scene.remove (_arrow);
-    _scene.add(Arrow(_camera));
+    if (_settings.debug) addViewHelper(_scene);
     // Send a ray through the middle of camera view
     _raycaster.setFromCamera({ x: 0, y: 0 }, _camera);
     // Get the component frames intersecting the ray
@@ -469,6 +472,12 @@ function Director(engine) {
       }
     });
     highlightSelection();
+  }
+
+  function addViewHelper() {
+    if (_arrow) _scene.remove (_arrow);
+    _arrow = Arrow(_camera);
+    _scene.add(_arrow);
   }
 
   /**
@@ -579,14 +588,20 @@ function Director(engine) {
       let rot = arrangement.rotation.clone();
       
       if (animated) {
-        Animate(instance.component).start({
-          transformFn: moveBy,
-          deltaVec: pos
-        });
+        Animate(instance.component)
+          .start({
+            transformFn: moveBy,
+            deltaVec: pos
+          })
+          .start({
+            transformFn: rotateBy,
+            deltaVec: rot
+          })
       } else {
+        instance.component.rotation.set(rot.x, rot.y, rot.z);
         instance.component.position.copy(pos);
       }
-      instance.component.rotation.set(rot.x, rot.y, rot.z);
+      
       window.ocularisComponents.push(instance);
     }
   }
