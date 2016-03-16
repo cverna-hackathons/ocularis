@@ -4,6 +4,25 @@ function Light() {
   return new THREE.AmbientLight(0xeeeeee);
 }
 
+function Background(options, done) {
+
+  var texLoader = new THREE.TextureLoader();
+  var sphere = new THREE.SphereGeometry(200, 20, 20);
+
+  options = options || { bgPath: 'images/backdrop_mountains.jpg' };
+  texLoader.load(options.bgPath, onTextureLoaded);
+
+  function onTextureLoaded(texture) {
+    console.log('onTextureLoaded | texture:', texture);
+    var material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.BackSide
+    });
+    texture.needsUpdate = true;
+    return done(new THREE.Mesh(sphere, material));
+  }
+}
+
 function Pivot(opt) {
   opt = _.defaults(opt || {}, {
     size: {
@@ -472,6 +491,9 @@ function Director(engine) {
         settings.components.forEach(function (component, componentIdx) {
           component.idx = componentIdx;
           addComponent(component);
+        });
+        Background(null, function (bg) {
+          return _scene.add(bg);
         });
         if (done) return done();
       } else console.warn('Unable to load settings! [Error:', errs, ']');

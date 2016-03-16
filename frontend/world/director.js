@@ -1,4 +1,5 @@
 import Light from './light';
+import Background from './background';
 import Pivot from '../dummies/pivot';
 import Arrow from '../dummies/arrow';
 import { Plane } from '../dummies/fitting';
@@ -11,6 +12,7 @@ import {
 import { loadSettings } from '../helpers/routes';
 import { rotateBy, moveBy } from '../helpers/transforms';
 import { Animate, updateAnimations } from './animation';
+
 
 export default function(engine) {
   // Track the camera and scene objects
@@ -240,6 +242,7 @@ export default function(engine) {
           component.idx = componentIdx;
           addComponent(component);
         });
+        Background(null, (bg) => _scene.add(bg));
         if (done) return done();
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });
