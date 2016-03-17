@@ -72,10 +72,10 @@ module.exports = function(app, config) {
   });
 
   //automatic creation of tables
-  models.sequelize.sync().then( () => {
-    app.listen(config.port, () => {
-      console.log(`OCULARIS Listening on port: ${config.port}.`);
-    });
+  models.sequelize.sync().catch(err => console.log('database connection error:', err));
+
+  app.listen(config.port, () => {
+    console.log(`OCULARIS Listening on port: ${config.port}.`);
   });
 
 };

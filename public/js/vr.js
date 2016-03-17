@@ -366,14 +366,22 @@ function Director(engine) {
     // Check the instance in view and is not already activated
     // If there is one, check it's view frame distance to camera 
     if (_inView.instance && !_inView.instance._activated) {
-      activateComponent();
+
+      window.ocularisComponents.forEach(function (instance) {
+        if (_inView.instance.id === instance.id) {
+          activateComponent(instance);
+        } else if (instance._activated) deactivateComponent(instance);
+      });
     } else if (_inView.instance && _inView.instance._activated) {
       deactivateComponent(_inView.instance);
     } else console.log('No component in view.');
   }
 
-  function setFitting() {
-    _fitting = Plane(_inView.instance.frame, _camera);
+  function setFitting(instance) {
+    _fitting = Plane(instance.frame, _camera);
+    // Update transform matrix according to world,
+    // so we get the correct transform relation
+    instance.component.updateMatrixWorld();
 
     var fittingPlane = _fitting.object;
     var _cameraLookAt = cameraLookAt();
@@ -383,8 +391,8 @@ function Director(engine) {
     // Add the dummy fitting plane to scene
     _scene.add(fittingPlane);
     // Move and rotate the fitting plane
-    fittingPlane.position.addVectors(cameraPos, shiftVector);
-    fittingPlane.rotation.copy(_camera.rotation);
+    fittingPlane.position.clone(shiftVector);
+    fittingPlane.rotation.clone(_camera.rotation);
     console.log('shiftVector:', shiftVector);
     console.log('_fitting:', _fitting);
 
@@ -397,37 +405,36 @@ function Director(engine) {
    * Align component to a fitting plane visible from camera, move and rotate
    * @return {void}
    */
-  function activateComponent() {
-    var component = _inView.instance.component;
+  function activateComponent(instance) {
+    var component = instance.component;
 
     console.log('_inView', _inView);
     // Set up fitting for animation
-    setFitting();
-
-    // Update transform matrix according to world,
-    // so we get the correct transform relation
-    component.updateMatrixWorld();
+    setFitting(instance);
 
     // Get the distance and rotation relations between fitting plane and frame
-    var transformRelation = getTransformRelation(_inView.instance.frame, _fitting.object, 1);
+    var transformRelation = getTransformRelation(instance.frame, _fitting.object, 1);
 
     // Negate on the z axis, since we are coming closer to camera
-    transformRelation.distanceVec.z *= -1;
+    transformRelation.distanceVec.negate();
+    transformRelation.rotationVec.negate();
 
     Animate(component).start({
       deltaVec: transformRelation.distanceVec, transformFn: moveBy
     }).start({
       deltaVec: transformRelation.rotationVec, transformFn: rotateBy
-    }).then(renderActivationData);
+    }).then(function () {
+      return renderActivationData(instance);
+    });
 
-    _inView.instance._activated = true;
+    instance._activated = true;
     console.log('transformRelation:', transformRelation);
   }
 
-  function renderActivationData() {
+  function renderActivationData(instance) {
     // Get initial data from provider
     // Render it to drawables
-    _inView.instance.draw([{
+    instance.draw([{
       drawableId: 'main',
       content: 'Go is a fascinating strategy board game that\'s been popular for at least 2,500 years, and probably more. Its simple rules and deep strategies have intrigued everyone from emperors to peasants for hundreds of generations. And they still do today. The game Go has fascinated people for thousands of years.',
       type: 'text',
