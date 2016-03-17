@@ -17,9 +17,14 @@ function moveBy(object, distanceVec) {
  * @return {void} 
  */
 function rotateBy(object, rotationVec) {
-  var rot = object.rotation;
 
-  object.rotation.set(rot.x + rotationVec.x, rot.y + rotationVec.y, rot.z + rotationVec.z);
+  console.log('rotateBy | rotationVec, object.rotation:', rotationVec, object.rotation);
+
+  var rot = object.rotation.toVector3();
+
+  rot.addVectors(rot, rotationVec);
+
+  object.rotation.setFromVector3(rot);
 }
 
 function Scene() {
@@ -56,31 +61,6 @@ function Background(options, done) {
 
     return done(backdrop);
   }
-}
-
-function Pivot(opt) {
-  opt = _.defaults(opt || {}, {
-    size: {
-      width: .1,
-      height: .1,
-      depth: .1
-    },
-    position: {
-      x: 0,
-      y: -1,
-      z: -2.5
-    },
-    material: new THREE.MeshBasicMaterial({ color: 'red' })
-  });
-
-  var geometry = new THREE.CubeGeometry(opt.size.width, opt.size.height, opt.size.depth);
-  var box = new THREE.Mesh(geometry, opt.material);
-
-  box.position.x = opt.position.x;
-  box.position.y = opt.position.y;
-  box.position.z = opt.position.z;
-
-  return box;
 }
 
 function Arrow(camera) {
@@ -136,14 +116,6 @@ var componentArrangementMap = [
   position: new THREE.Vector3(-xShift, 0, zShift),
   rotation: new THREE.Vector3(0, angleShift, 0)
 }];
-
-/**
- * Get the standard camera vector looking down the z axis
- * @return {THREE.Vector3} Camera initial lookat vector
- */
-function cameraLookAt() {
-  return new THREE.Vector3(0, 0, -1);
-}
 
 /**
  * Returns object containing information about the distance
@@ -203,6 +175,7 @@ function Animate(object) {
   var id = Date.now() + '-' + object.id;
 
   var context = {
+    object: object,
     id: id,
     start: function start(options) {
       transforms.push(animatedTransform(object, options.transformFn, options.deltaVec, options.frameLength));
@@ -224,7 +197,6 @@ function Animate(object) {
       if (typeof fn === 'function') interimCallback = fn;
     },
     complete: function complete() {
-      delete _animations[id];
       if (typeof finalCallback === 'function') return finalCallback();
     },
     then: function then(fn) {
@@ -245,6 +217,7 @@ function updateAnimations() {
       var anim = _animations[id];
       if (anim.next() === false) {
         anim.complete();
+        delete _animations[anim.id];
       }
     }
   }
@@ -264,7 +237,7 @@ function animatedTransform(object, transformFn, deltaVec, frameLength) {
   frameLength = frameLength || 60;
 
   // let initialPosition  = object.position.clone();
-  var moveIncrementVec = deltaVec.divideScalar(frameLength);
+  var increment = deltaVec.divideScalar(frameLength);
   var framesLeft = frameLength + 0;
 
   return {
@@ -273,7 +246,7 @@ function animatedTransform(object, transformFn, deltaVec, frameLength) {
     next: function next() {
       framesLeft--;
       if (framesLeft > 0 && deltaVec.length() !== 0) {
-        transformFn(object, deltaVec);
+        transformFn(object, increment);
         return true;
       } else return false;
     }
@@ -315,8 +288,6 @@ function Director(engine) {
     _raycaster = new THREE.Raycaster();
     // Add our ambient light to scene   
     _scene.add(Light());
-    // Add basic pivot object to the scene (red box)
-    _scene.add(Pivot());
     // Empty component container arrays
     initializeComponentContainers();
     // Add components to scene
@@ -363,10 +334,12 @@ function Director(engine) {
    * @return {void}
    */
   function toggleComponentActivation() {
-    // Check the instance in view and is not already activated
-    // If there is one, check it's view frame distance to camera 
-    if (_inView.instance && !_inView.instance._activated) {
+    // XXX: just changing rotation for testing
+    _camera.rotation.z += Math.PI / 180 * 1;
 
+    // Check the instance in view and is not already activated
+    // If there is one, check it's view frame distance to camera
+    if (_inView.instance && !_inView.instance._activated) {
       window.ocularisComponents.forEach(function (instance) {
         if (_inView.instance.id === instance.id) {
           activateComponent(instance);
@@ -381,19 +354,18 @@ function Director(engine) {
     _fitting = Plane(instance.frame, _camera);
     // Update transform matrix according to world,
     // so we get the correct transform relation
-    instance.component.updateMatrixWorld();
 
     var fittingPlane = _fitting.object;
-    var _cameraLookAt = cameraLookAt();
+    var _cameraLookAt = _camera.getWorldDirection();
     var cameraPos = _camera.position;
     var shiftVector = _cameraLookAt.applyQuaternion(_camera.quaternion).multiplyScalar(_fitting.zDistance);
 
     // Add the dummy fitting plane to scene
     _scene.add(fittingPlane);
     // Move and rotate the fitting plane
-    fittingPlane.position.clone(shiftVector);
-    fittingPlane.rotation.clone(_camera.rotation);
-    console.log('shiftVector:', shiftVector);
+    fittingPlane.position.addVectors(_cameraLookAt, shiftVector);
+    fittingPlane.rotation.copy(_camera.rotation);
+    console.log('shiftVector, _camera.rotation, _cameraLookAt:', shiftVector, _camera.rotation, _cameraLookAt);
     console.log('_fitting:', _fitting);
 
     setTimeout(function () {
@@ -409,22 +381,20 @@ function Director(engine) {
     var component = instance.component;
 
     console.log('_inView', _inView);
+
+    // _camera.updateMatrixWorld();
     // Set up fitting for animation
     setFitting(instance);
 
     // Get the distance and rotation relations between fitting plane and frame
     var transformRelation = getTransformRelation(instance.frame, _fitting.object, 1);
-
     // Negate on the z axis, since we are coming closer to camera
     transformRelation.distanceVec.negate();
     transformRelation.rotationVec.negate();
 
-    Animate(component).start({
-      deltaVec: transformRelation.distanceVec, transformFn: moveBy
-    }).start({
-      deltaVec: transformRelation.rotationVec, transformFn: rotateBy
-    }).then(function () {
-      return renderActivationData(instance);
+    Animate(component).start({ deltaVec: transformRelation.distanceVec, transformFn: moveBy }).start({ deltaVec: transformRelation.rotationVec, transformFn: rotateBy }).then(function () {
+      renderActivationData(instance);
+      instance.component.updateMatrixWorld();
     });
 
     instance._activated = true;
@@ -463,7 +433,7 @@ function Director(engine) {
     // Only capture objects that are no further than 100
     _inView.distance = 100;
     _inView.instance = null;
-    _camera = engine.getCamera();
+    if (!_camera) _camera = engine.getCamera();
     // Show arrow helper in the middle of view
     if (_debug) addViewHelper(_scene);
     // Send a ray through the middle of camera view
@@ -569,6 +539,7 @@ function Director(engine) {
           _scene.add(instance.component);
           if (!_previewMode) {
             arrangeComponent(instance);
+            window.ocularisComponents.push(instance);
           } else {
             _inView.instance = instance;
             activateComponentInView();
@@ -589,25 +560,20 @@ function Director(engine) {
     var idx = instance.idx;
     var arrangement = componentArrangementMap[idx];
 
-    console.log('idx, arrangement:', idx, arrangement, window.ocularisComponents);
     if (arrangement) {
       var pos = arrangement.position.clone();
       var rot = arrangement.rotation.clone();
 
+      console.log('arrangeComponent, arrangement:', arrangement);
       if (animated) {
-        Animate(instance.component).start({
-          transformFn: moveBy,
-          deltaVec: pos
-        }).start({
-          transformFn: rotateBy,
-          deltaVec: rot
-        });
+        var deltaPos = pos.sub(instance.component.position);
+        var deltaRot = rot.sub(instance.component.rotation);
+
+        Animate(instance.component).start({ transformFn: moveBy, deltaVec: deltaPos }).start({ transformFn: rotateBy, deltaVec: deltaRot });
       } else {
-        instance.component.rotation.set(rot.x, rot.y, rot.z);
+        instance.component.rotation.setFromVector3(rot);
         instance.component.position.copy(pos);
       }
-
-      window.ocularisComponents.push(instance);
     }
   }
 

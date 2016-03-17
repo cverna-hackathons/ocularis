@@ -9,7 +9,7 @@ module.exports = (function() {
   function defaultSettings() {
     var DEFAULTS = {
       name: 'Default world',
-      debug: false,
+      debug: true,
       ui: {
         activationKey: 'spacebar'
       },
