@@ -166,10 +166,10 @@ export default function(engine) {
     // Render it to drawables
     _inView.instance.draw([{
       drawableId: 'main',
-      content: 'Initial main text for instance of ' + _inView.instance.id + '.',
+      content: 'Go is a fascinating strategy board game that\'s been popular for at least 2,500 years, and probably more. Its simple rules and deep strategies have intrigued everyone from emperors to peasants for hundreds of generations. And they still do today. The game Go has fascinated people for thousands of years.',
       type: 'text',
-      bgColor: 'rgba(100, 100, 100, 0.3)',
-      textColor: '#ffffff'
+      bgColor: 'rgba(0, 0, 0, 0.3)',
+      textColor: 'rgba(255, 255, 255, 0.7)'
     }]);
   }
 
@@ -243,6 +243,7 @@ export default function(engine) {
           addComponent(component);
         });
         Background(null, (bg) => _scene.add(bg));
+        _scene.fog = new THREE.FogExp2(0xeeeeee, 0.05);
         if (done) return done();
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });

@@ -4,22 +4,36 @@ function Light() {
 
 function Background (options, done) {
 
-  let texLoader   = new THREE.TextureLoader();
-  let sphere      = new THREE.SphereGeometry(200, 20, 20);
-  
+  options = options || { 
+    bgPath: 'images/backdrop_mountains.jpg',
+    radius: 20,
+    hCutOff: 0,
+    vCutOff: 1,
+    resolution: 20 
+  };
 
-  options = options || { bgPath: 'images/backdrop_mountains.jpg' };
+  let texLoader   = new THREE.TextureLoader();
+  let sphere      = new THREE.SphereGeometry(
+    options.radius, options.resolution, options.resolution, 
+      (Math.PI + options.hCutOff), (Math.PI - (2 * options.hCutOff)), options.vCutOff,
+      (Math.PI - (2 * options.vCutOff))
+  );
+  let material    = new THREE.MeshBasicMaterial({
+    side: THREE.BackSide
+  });
+  let backdrop    = new THREE.Mesh(sphere, material);  
+
   texLoader.load(options.bgPath, onTextureLoaded);
 
   function onTextureLoaded(texture) {
     console.log('onTextureLoaded | texture:', texture);
-    let material    = new THREE.MeshBasicMaterial({
-      map: texture,
-      side: THREE.BackSide
-    });
+    material.map = texture;
     texture.needsUpdate = true;
-    return done(new THREE.Mesh(sphere, material));
+
+    return done(backdrop);
   }
+
+  
 }
 
 function Pivot(opt) {
@@ -447,10 +461,10 @@ function Director(engine) {
     // Render it to drawables
     _inView.instance.draw([{
       drawableId: 'main',
-      content: 'Initial main text for instance of ' + _inView.instance.id + '.',
+      content: 'Go is a fascinating strategy board game that\'s been popular for at least 2,500 years, and probably more. Its simple rules and deep strategies have intrigued everyone from emperors to peasants for hundreds of generations. And they still do today. The game Go has fascinated people for thousands of years.',
       type: 'text',
-      bgColor: 'rgba(100, 100, 100, 0.3)',
-      textColor: '#ffffff'
+      bgColor: 'rgba(0, 0, 0, 0.3)',
+      textColor: 'rgba(255, 255, 255, 0.7)'
     }]);
   }
 
@@ -524,6 +538,7 @@ function Director(engine) {
           addComponent(component);
         });
         Background(null, (bg) => _scene.add(bg));
+        _scene.fog = new THREE.FogExp2(0xeeeeee, 0.05);
         if (done) return done();
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });
