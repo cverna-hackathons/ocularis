@@ -16,6 +16,7 @@ export function Animate(object) {
   );
 
   let context = {
+    object,
     id,
     start: (options) => {
       transforms.push(animatedTransform(
@@ -37,7 +38,6 @@ export function Animate(object) {
       if (typeof fn === 'function') interimCallback = fn;
     },
     complete: () => {
-      delete _animations[id];
       if (typeof finalCallback === 'function') return finalCallback();
     },
     then: (fn) => {
@@ -58,9 +58,28 @@ export function updateAnimations() {
       let anim = _animations[id];
       if (anim.next() === false) {
         anim.complete();
+        delete _animations[anim.id];
       }
     }
   }
+}
+
+
+/**
+ * Returns array of objects that are currently being animated
+ * @return {Array}
+ */
+export function objectsInAnimation() {
+  let running = [];
+
+  for (var id in _animations) {
+    if (_animations.hasOwnProperty(id)) {
+      let anim = _animations[id];
+      running.push(anim.object);
+    }
+  }
+
+  return running;
 }
 
 
@@ -78,7 +97,7 @@ export function animatedTransform(object, transformFn, deltaVec, frameLength) {
   frameLength = (frameLength || 60);
 
   // let initialPosition  = object.position.clone();
-  let moveIncrementVec = deltaVec.divideScalar(frameLength);
+  let increment = deltaVec.divideScalar(frameLength);
   let framesLeft       = frameLength + 0;
   
   return {
@@ -87,7 +106,7 @@ export function animatedTransform(object, transformFn, deltaVec, frameLength) {
     next: () => {
       framesLeft--;
       if (framesLeft > 0 && deltaVec.length() !== 0) {
-        transformFn(object, deltaVec);
+        transformFn(object, increment);
         return true;
       }
       else return false;

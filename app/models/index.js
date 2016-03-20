@@ -9,6 +9,8 @@ var config    = require(__dirname + '/../config/database.json')[env];
 var sequelize = new Sequelize(config.database, config.username, config.password, config);
 var db        = {};
 
+// console.log(sequelize.prototype);
+
 fs
   .readdirSync(__dirname)
   .filter(function(file) {
@@ -24,7 +26,8 @@ Object.keys(db).forEach(function(modelName) {
   if (db[modelName].associate) {
     db[modelName].associate(db);
   }
-});
+});  
+
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;

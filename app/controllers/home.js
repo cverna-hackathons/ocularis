@@ -6,7 +6,7 @@ let isAuth = require('../lib/auth/is-auth');
 let route = require('express').Router();
 let passport = require('passport');
 
-route.get('/', isAuth, (req, res) => {
+route.get('/', (req, res) => {
   res.render('main');
 });
 

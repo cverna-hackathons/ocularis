@@ -1,16 +1,16 @@
 import Light from './light';
-import Pivot from '../dummies/pivot';
+import Background from './background';
 import Arrow from '../dummies/arrow';
 import { Plane } from '../dummies/fitting';
 import { 
   componentArrangementMap,
-  planeToCameraRotation,
   cameraLookAt,
   getTransformRelation
 } from '../helpers/measures';
 import { loadSettings } from '../helpers/routes';
 import { rotateBy, moveBy } from '../helpers/transforms';
 import { Animate, updateAnimations } from './animation';
+
 
 export default function(engine) {
   // Track the camera and scene objects
@@ -39,8 +39,6 @@ export default function(engine) {
     _raycaster = new THREE.Raycaster();
     // Add our ambient light to scene    
     _scene.add(Light());
-    // Add basic pivot object to the scene (red box)
-    _scene.add(Pivot());
     // Empty component container arrays
     initializeComponentContainers();
     // Add components to scene
@@ -91,10 +89,17 @@ export default function(engine) {
    * @return {void}
    */
   function toggleComponentActivation() {
+    // XXX: just changing rotation for testing
+    _camera.rotation.z += ((Math.PI / 180) * 1);
+
     // Check the instance in view and is not already activated
-    // If there is one, check it's view frame distance to camera  
+    // If there is one, check it's view frame distance to camera
     if (_inView.instance && !_inView.instance._activated) {
-      activateComponent();
+      window.ocularisComponents.forEach(instance => {
+        if (_inView.instance.id === instance.id) {
+          activateComponent(instance);
+        } else if (instance._activated) deactivateComponent(instance);
+      });
     }
     else if (_inView.instance && _inView.instance._activated) {
       deactivateComponent(_inView.instance);
@@ -102,11 +107,13 @@ export default function(engine) {
     else console.log('No component in view.');
   }
 
-  function setFitting() {
-    _fitting = Plane(_inView.instance.frame, _camera);
+  function setFitting(instance) {
+    _fitting = Plane(instance.frame, _camera);
+    // Update transform matrix according to world, 
+    // so we get the correct transform relation
     
     let fittingPlane = _fitting.object;    
-    let _cameraLookAt = cameraLookAt();
+    let _cameraLookAt = _camera.getWorldDirection();
     let cameraPos    = _camera.position;
     let shiftVector  = _cameraLookAt
         .applyQuaternion(_camera.quaternion)
@@ -115,9 +122,9 @@ export default function(engine) {
     // Add the dummy fitting plane to scene
     _scene.add(fittingPlane);
     // Move and rotate the fitting plane
-    fittingPlane.position.addVectors(cameraPos, shiftVector);
+    fittingPlane.position.addVectors(_cameraLookAt, shiftVector);
     fittingPlane.rotation.copy(_camera.rotation);
-    console.log('shiftVector:', shiftVector);
+    console.log('shiftVector, _camera.rotation, _cameraLookAt:', shiftVector, _camera.rotation, _cameraLookAt);
     console.log('_fitting:', _fitting);
 
     setTimeout(() => _scene.remove(fittingPlane), 3000);
@@ -127,47 +134,44 @@ export default function(engine) {
    * Align component to a fitting plane visible from camera, move and rotate
    * @return {void}
    */
-  function activateComponent() {
-    let component = _inView.instance.component;
+  function activateComponent(instance) {
+    let component = instance.component;
 
     console.log('_inView', _inView);
-    // Set up fitting for animation 
-    setFitting();
 
-    // Update transform matrix according to world, 
-    // so we get the correct transform relation
-    component.updateMatrixWorld();
-    
+    // _camera.updateMatrixWorld();
+    // Set up fitting for animation 
+    setFitting(instance);
+   
     // Get the distance and rotation relations between fitting plane and frame
     let transformRelation = 
-      getTransformRelation(_inView.instance.frame, _fitting.object, 1);
-
+      getTransformRelation(instance.frame, _fitting.object, 1);
     // Negate on the z axis, since we are coming closer to camera
-    transformRelation.distanceVec.z *= -1;
+    transformRelation.distanceVec.negate();
+    transformRelation.rotationVec.negate();
 
     Animate(component)
-      .start({
-        deltaVec: transformRelation.distanceVec, transformFn: moveBy
-      })
-      .start({
-        deltaVec: transformRelation.rotationVec, transformFn: rotateBy 
-      })
-    .then(renderActivationData);
-
-    _inView.instance._activated = true;
+      .start({ deltaVec: transformRelation.distanceVec, transformFn: moveBy })
+      .start({ deltaVec: transformRelation.rotationVec, transformFn: rotateBy })
+    .then(() => {
+      renderActivationData(instance);
+      instance.component.updateMatrixWorld();
+    });
+    
+    instance._activated = true;
     console.log('transformRelation:', transformRelation);
 
   }
 
-  function renderActivationData() {
+  function renderActivationData(instance) {
     // Get initial data from provider
     // Render it to drawables
-    _inView.instance.draw([{
+    instance.draw([{
       drawableId: 'main',
-      content: 'Initial main text for instance of ' + _inView.instance.id + '.',
+      content: 'Go is a fascinating strategy board game that\'s been popular for at least 2,500 years, and probably more. Its simple rules and deep strategies have intrigued everyone from emperors to peasants for hundreds of generations. And they still do today. The game Go has fascinated people for thousands of years.',
       type: 'text',
-      bgColor: 'rgba(100, 100, 100, 0.3)',
-      textColor: '#ffffff'
+      bgColor: 'rgba(0, 0, 0, 0.3)',
+      textColor: 'rgba(255, 255, 255, 0.7)'
     }]);
   }
 
@@ -191,7 +195,7 @@ export default function(engine) {
     // Only capture objects that are no further than 100
     _inView.distance = 100; 
     _inView.instance = null;
-    _camera = engine.getCamera();
+    if (!_camera) _camera = engine.getCamera();
     // Show arrow helper in the middle of view
     if (_debug) addViewHelper(_scene);
     // Send a ray through the middle of camera view
@@ -240,6 +244,8 @@ export default function(engine) {
           component.idx = componentIdx;
           addComponent(component);
         });
+        Background(null, (bg) => _scene.add(bg));
+        _scene.fog = new THREE.FogExp2(0xeeeeee, 0.05);
         if (done) return done();
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });
@@ -293,6 +299,7 @@ export default function(engine) {
           _scene.add(instance.component);
           if (!_previewMode) {
             arrangeComponent(instance);
+            window.ocularisComponents.push(instance);
           } else {
             _inView.instance = instance;
             activateComponentInView();
@@ -315,28 +322,23 @@ export default function(engine) {
   function arrangeComponent(instance, animated) {
     let idx         = instance.idx;
     let arrangement = componentArrangementMap[idx];
-    
-    console.log('idx, arrangement:', idx, arrangement, window.ocularisComponents);
+
     if (arrangement) {
       let pos = arrangement.position.clone();
       let rot = arrangement.rotation.clone();
       
+      console.log('arrangeComponent, arrangement:', arrangement)
       if (animated) {
+        let deltaPos = pos.sub(instance.component.position);
+        let deltaRot = rot.sub(instance.component.rotation);
+
         Animate(instance.component)
-          .start({
-            transformFn: moveBy,
-            deltaVec: pos
-          })
-          .start({
-            transformFn: rotateBy,
-            deltaVec: rot
-          })
+          .start({ transformFn: moveBy, deltaVec: deltaPos })
+          .start({ transformFn: rotateBy, deltaVec: deltaRot })
       } else {
-        instance.component.rotation.set(rot.x, rot.y, rot.z);
+        instance.component.rotation.setFromVector3(rot);
         instance.component.position.copy(pos);
       }
-      
-      window.ocularisComponents.push(instance);
     }
   }
 
