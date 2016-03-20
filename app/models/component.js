@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     url: DataTypes.STRING,
     name: DataTypes.STRING,
+    byNpm: DataTypes.BOOLEAN
   }, {
     classMethods: {
       associate: (models) => {

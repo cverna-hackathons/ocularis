@@ -12,7 +12,8 @@
     "prewatch:js": "npm run prebuild:js",
     "watch:js": "watch 'npm run build:js' ./frontend/.",
     "build:components": "node scripts/build_components",
-    "seed-database": "node scripts/seed_database"
+    "seed-database": "node scripts/seed_database",
+    "register:component": "node scripts/register_component"
   },
   "dependencies": {
     "async": "^1.5.2",

@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     classMethods: {
       associate: (models) => {
-        ComponentField.hasOne(models.DataType);
+        ComponentField.hasMany(models.ComponentFieldDataType);
         ComponentField.belongsTo(models.Component);
       }
     }
