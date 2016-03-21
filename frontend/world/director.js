@@ -90,21 +90,38 @@ export default function(engine) {
    */
   function toggleComponentActivation() {
     // XXX: just changing rotation for testing
-    _camera.rotation.z += ((Math.PI / 180) * 1);
+    _camera.rotation.z += ((Math.PI / 180) * 2);
+    _camera.rotation.y += ((Math.PI / 180) * 2);
 
-    // Check the instance in view and is not already activated
-    // If there is one, check it's view frame distance to camera
-    if (_inView.instance && !_inView.instance._activated) {
-      window.ocularisComponents.forEach(instance => {
-        if (_inView.instance.id === instance.id) {
-          activateComponent(instance);
-        } else if (instance._activated) deactivateComponent(instance);
-      });
-    }
-    else if (_inView.instance && _inView.instance._activated) {
-      deactivateComponent(_inView.instance);
-    }
-    else console.log('No component in view.');
+    let instanceInView = _inView.instance;
+
+    if (_inView.instance && !_inView.instance._noEvents) {
+      // Check the instance in view and is not already activated
+      // If there is one, check it's view frame distance to camera
+      if (!instanceInView._activated) {
+        window.ocularisComponents.forEach(instance => {
+          if (instanceInView.id === instance.id) {
+            instance._noEvents = true;
+            activateComponent(instance, () => {
+              instance._noEvents = false;
+            });
+          } else if (instance._activated) {
+            instance._noEvents = true;
+            deactivateComponent(instance, () => {
+              instance._noEvents = false;
+            });
+          }
+        });
+      }
+      else if (instanceInView._activated) {
+
+        instanceInView._noEvents = true;
+        deactivateComponent(instanceInView, () => {
+          instanceInView._noEvents = false;
+        });
+      }
+    }      
+    else console.log('No component in view or no events allowed.');
   }
 
   function setFitting(instance) {
@@ -134,15 +151,14 @@ export default function(engine) {
    * Align component to a fitting plane visible from camera, move and rotate
    * @return {void}
    */
-  function activateComponent(instance) {
+  function activateComponent(instance, done) {
     let component = instance.component;
 
     console.log('_inView', _inView);
 
-    // _camera.updateMatrixWorld();
+    component.updateMatrixWorld();
     // Set up fitting for animation 
     setFitting(instance);
-   
     // Get the distance and rotation relations between fitting plane and frame
     let transformRelation = 
       getTransformRelation(instance.frame, _fitting.object, 1);
@@ -155,12 +171,12 @@ export default function(engine) {
       .start({ deltaVec: transformRelation.rotationVec, transformFn: rotateBy })
     .then(() => {
       renderActivationData(instance);
-      instance.component.updateMatrixWorld();
+      
+      instance._activated = true;
+      if (done) return done();
     });
     
-    instance._activated = true;
     console.log('transformRelation:', transformRelation);
-
   }
 
   function renderActivationData(instance) {
@@ -180,10 +196,10 @@ export default function(engine) {
    * @param  {Object} Component instance to rearrange
    * @return {void}
    */
-  function deactivateComponent(instance) {
+  function deactivateComponent(instance, done) {
     instance.deactivate();
     instance._activated = false;
-    arrangeComponent(instance, true);
+    arrangeComponent(instance, true, done);
   }
 
   /**
@@ -245,7 +261,7 @@ export default function(engine) {
           addComponent(component);
         });
         Background(null, (bg) => _scene.add(bg));
-        _scene.fog = new THREE.FogExp2(0xeeeeee, 0.05);
+        // _scene.fog = new THREE.FogExp2(0xeeeeee, 0.05);
         if (done) return done();
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });
@@ -297,6 +313,7 @@ export default function(engine) {
           // If component is in preview, do not add to global
           // in order to prevent displacement in preview
           _scene.add(instance.component);
+          // instance.frame.visible = (_debug === true);
           if (!_previewMode) {
             arrangeComponent(instance);
             window.ocularisComponents.push(instance);
@@ -316,10 +333,12 @@ export default function(engine) {
 
   /**
    * Arranges component according to it's order in scene
-   * @param  {instance: Object} Component instance
+   * @param  {Object} Component instance
+   * @param  {Boolean} If this arrangement is to be animated
+   * @param  {Boolean} If this arrangement is to be animated
    * @return {void}
    */
-  function arrangeComponent(instance, animated) {
+  function arrangeComponent(instance, animated, done) {
     let idx         = instance.idx;
     let arrangement = componentArrangementMap[idx];
 
@@ -335,9 +354,11 @@ export default function(engine) {
         Animate(instance.component)
           .start({ transformFn: moveBy, deltaVec: deltaPos })
           .start({ transformFn: rotateBy, deltaVec: deltaRot })
+        .then(done);
       } else {
         instance.component.rotation.setFromVector3(rot);
         instance.component.position.copy(pos);
+        if (done) return done();
       }
     }
   }

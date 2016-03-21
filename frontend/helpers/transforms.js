@@ -76,12 +76,7 @@ export function moveBy(object, distanceVec) {
  * @return {void} 
  */
 export function rotateBy(object, rotationVec) {
-
-  console.log('rotateBy | rotationVec, object.rotation:', rotationVec, object.rotation)
-
   let rot = object.rotation.toVector3();
-
   rot.addVectors(rot, rotationVec);
-
   object.rotation.setFromVector3(rot);
 }

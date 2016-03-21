@@ -82,7 +82,6 @@ export function objectsInAnimation() {
   return running;
 }
 
-
 /**
  * Transforms (animated) to a vector 
  * (by transforming initial vectors with transform function)
@@ -94,7 +93,7 @@ export function objectsInAnimation() {
  *                  that is used for animation stepping or cancellation 
  */
 export function animatedTransform(object, transformFn, deltaVec, frameLength) {
-  frameLength = (frameLength || 60);
+  frameLength = (frameLength || 30);
 
   // let initialPosition  = object.position.clone();
   let increment = deltaVec.divideScalar(frameLength);

@@ -1,7 +1,7 @@
 export default function (options, done) {
 
   options = options || { 
-    bgPath: 'images/backdrop_mountains.jpg',
+    bgPath: 'images/backdrop_desert.jpg',
     radius: 20,
     hCutOff: 0,
     vCutOff: 1,
@@ -10,9 +10,9 @@ export default function (options, done) {
 
   let texLoader   = new THREE.TextureLoader();
   let sphere      = new THREE.SphereGeometry(
-    options.radius, options.resolution, options.resolution, 
-      (Math.PI + options.hCutOff), (Math.PI - (2 * options.hCutOff)), options.vCutOff,
-      (Math.PI - (2 * options.vCutOff))
+    options.radius, options.resolution, options.resolution
+    // , (Math.PI + options.hCutOff), (Math.PI - (2 * options.hCutOff)), options.vCutOff,
+    //   (Math.PI - (2 * options.vCutOff))
   );
   let material    = new THREE.MeshBasicMaterial({
     side: THREE.BackSide
