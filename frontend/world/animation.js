@@ -21,7 +21,6 @@ export function Animate(object) {
     object,
     id,
     start: (options) => {
-      console.log('Animate object.name, options.deltaVec:', object.name, options.deltaVec)
       transforms.push(animatedTransform(
         object, options.transformFn, options.deltaVec, options.frameLength
       ));
