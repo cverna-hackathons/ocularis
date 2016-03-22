@@ -1,6 +1,6 @@
 /**
  * Return fitting plane properties
- * @param  {Object THREE.Plane} Frame that bounds the object viewable area
+ * @param  {Object THREE.Mesh} Frame that bounds the object viewable area
  * @param  {Object THREE.Camera} Scene camera object
  * @return {Object object: THREE.Plane, zDistance: Float} Plane that is scaled 
  *         to our component frame and zDistance that gives us distance from camera

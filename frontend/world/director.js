@@ -90,6 +90,7 @@ export default function(engine) {
     // XXX: just changing rotation for testing
     _camera.rotation.z += ((Math.PI / 180) * 2);
     _camera.rotation.y += ((Math.PI / 180) * 2);
+    _camera.position.x -= .1;
 
     let instanceInView = _inView.instance;
 
@@ -123,19 +124,25 @@ export default function(engine) {
   }
 
   function setFitting(instance) {
+    // if (_fitting) {
+    //   _scene.remove(_fitting.object);
+    // }
+
+    _camera.updateMatrixWorld();
     _fitting = Plane(instance.frame, _camera);
     // Update transform matrix according to world, 
     // so we get the correct transform relation
     
     let fittingPlane = _fitting.object;    
-    let _cameraLookAt = _camera.getWorldDirection();
-    let cameraPos    = _camera.position;
-    let shiftVector  = _cameraLookAt.multiplyScalar(_fitting.zDistance);
+    let _cameraLookAt= _camera.getWorldDirection();
+    let cameraPos    = _camera.position.clone();
+    let shiftVector  = 
+      _cameraLookAt.multiplyScalar(_fitting.zDistance);
     
     // Add the dummy fitting plane to scene
     _scene.add(fittingPlane);
     // Move and rotate the fitting plane
-    fittingPlane.position.addVectors(_cameraLookAt, shiftVector);
+    fittingPlane.position.copy(cameraPos.add(shiftVector));
     fittingPlane.rotation.copy(_camera.rotation);
     console.log('shiftVector, _camera.rotation, _cameraLookAt:', shiftVector, _camera.rotation, _cameraLookAt);
     console.log('_fitting:', _fitting);
@@ -166,8 +173,7 @@ export default function(engine) {
       .start({ deltaVec: transformRelation.distanceVec, transformFn: moveBy })
       .start({ deltaVec: transformRelation.rotationVec, transformFn: rotateBy })
     .then(() => {
-      // renderActivationData(instance);
-      
+      renderActivationData(instance);
       instance._activated = true;
       if (done) return done();
     });
@@ -178,13 +184,20 @@ export default function(engine) {
   function renderActivationData(instance) {
     // Get initial data from provider
     // Render it to drawables
-    instance.draw([{
-      drawableId: 'main',
-      content: 'Go is a fascinating strategy board game that\'s been popular for at least 2,500 years, and probably more. Its simple rules and deep strategies have intrigued everyone from emperors to peasants for hundreds of generations. And they still do today. The game Go has fascinated people for thousands of years.',
-      type: 'text',
-      bgColor: 'rgba(0, 0, 0, 0.3)',
-      textColor: 'rgba(255, 255, 255, 0.7)'
-    }]);
+    instance.draw([
+      {
+        drawableId: 'main',
+        content: 'Go is a fascinating strategy board game that\'s been popular for at least 2,500 years, and probably more. Its simple rules and deep strategies have intrigued everyone from emperors to peasants for hundreds of generations. And they still do today. The game Go has fascinated people for thousands of years.',
+        type: 'text',
+        bgColor: 'rgba(0, 0, 0, 0.3)',
+        textColor: 'rgba(255, 255, 255, 0.7)'
+      },
+      {
+        drawableId: 'leftSide',
+        content: 'images/sample_image_for_leftside.jpg',
+        type: 'image'
+      },
+    ]);
   }
 
   /**
