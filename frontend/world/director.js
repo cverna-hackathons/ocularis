@@ -24,8 +24,6 @@ export default function(engine) {
 
   let _previewMode = false;
 
-  const selectedColor   = '#ff0000';
-  const unselectedColor = '#eeeeee';
   const activationID    = 'componentActivation';
 
   /**
@@ -132,9 +130,7 @@ export default function(engine) {
     let fittingPlane = _fitting.object;    
     let _cameraLookAt = _camera.getWorldDirection();
     let cameraPos    = _camera.position;
-    let shiftVector  = _cameraLookAt
-        .applyQuaternion(_camera.quaternion)
-        .multiplyScalar(_fitting.zDistance);
+    let shiftVector  = _cameraLookAt.multiplyScalar(_fitting.zDistance);
     
     // Add the dummy fitting plane to scene
     _scene.add(fittingPlane);
@@ -156,7 +152,7 @@ export default function(engine) {
 
     console.log('_inView', _inView);
 
-    component.updateMatrixWorld();
+    // component.updateMatrixWorld();
     // Set up fitting for animation 
     setFitting(instance);
     // Get the distance and rotation relations between fitting plane and frame
@@ -170,7 +166,7 @@ export default function(engine) {
       .start({ deltaVec: transformRelation.distanceVec, transformFn: moveBy })
       .start({ deltaVec: transformRelation.rotationVec, transformFn: rotateBy })
     .then(() => {
-      renderActivationData(instance);
+      // renderActivationData(instance);
       
       instance._activated = true;
       if (done) return done();
@@ -225,7 +221,6 @@ export default function(engine) {
         _inView.instance  = instance;
       }
     });
-    highlightSelection();
   }
 
   function addViewHelper() {
@@ -241,9 +236,10 @@ export default function(engine) {
    */
   function highlightSelection() {
     window.ocularisComponents.forEach((instance) => {
-      if (_inView.instance && instance.id === _inView.instance.id) {
-        _inView.instance.frame.material.color.set(selectedColor);
-      } else instance.frame.material.color.set(unselectedColor);
+      if (typeof(_inView.instance.highlight) === 'function') {
+        let isInView = (instance.id === _inView.instance.id);
+        _inView.instance.highlight(isInView);
+      }
     });
   }
 
@@ -307,13 +303,12 @@ export default function(engine) {
         var componentConstructor = getComponentConstructor(component.name);
 
         if (typeof componentConstructor === 'function') {
-          var instance = componentConstructor(component.id || Date.now());
+          var instance = componentConstructor(component.id || Date.now(), _debug);
           // Assign order index, will be reused by arrangement
           instance.idx = component.idx;
           // If component is in preview, do not add to global
           // in order to prevent displacement in preview
           _scene.add(instance.component);
-          // instance.frame.visible = (_debug === true);
           if (!_previewMode) {
             arrangeComponent(instance);
             window.ocularisComponents.push(instance);
@@ -340,6 +335,7 @@ export default function(engine) {
    */
   function arrangeComponent(instance, animated, done) {
     let idx         = instance.idx;
+    let component   = instance.component;
     let arrangement = componentArrangementMap[idx];
 
     if (arrangement) {
@@ -348,18 +344,22 @@ export default function(engine) {
       
       console.log('arrangeComponent, arrangement:', arrangement)
       if (animated) {
-        let deltaPos = pos.sub(instance.component.position);
-        let deltaRot = rot.sub(instance.component.rotation);
+        let deltaPos = pos.sub(component.position);
+        let deltaRot = rot.sub(component.rotation);
 
-        Animate(instance.component)
+        Animate(component)
           .start({ transformFn: moveBy, deltaVec: deltaPos })
           .start({ transformFn: rotateBy, deltaVec: deltaRot })
-        .then(done);
+        .then(finalize);
       } else {
-        instance.component.rotation.setFromVector3(rot);
-        instance.component.position.copy(pos);
-        if (done) return done();
+        component.rotation.setFromVector3(rot);
+        component.position.copy(pos);
+        return finalize();
       }
+    }
+
+    function finalize() {
+      if (done) return done();
     }
   }
 

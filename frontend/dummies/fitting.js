@@ -8,6 +8,9 @@
  * 
  */
 export function Plane(frame, camera) {
+
+  frame.updateMatrixWorld();
+
   let cameraAspect  = camera.aspect;
   let frameParams   = frame.geometry.parameters;
   let cameraLookAt  = new THREE.Vector3(0, 0, -1);
@@ -25,6 +28,8 @@ export function Plane(frame, camera) {
     new THREE.PlaneGeometry(frameWidth, frameHeight),
     new THREE.MeshBasicMaterial({ color: '#00ff00', wireframe: true })
   );
+  
+  fittingPlane.name = 'fittingPlane';
 
   return {
     object: fittingPlane,

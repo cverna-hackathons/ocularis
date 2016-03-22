@@ -1,7 +1,3 @@
-import {
-  getFacesToCamera
-} from '../helpers/transforms';
-
 import Scene from './scene';
 import Director from './director';
 import Renderer from './renderer';

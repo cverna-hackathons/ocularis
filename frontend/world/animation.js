@@ -15,10 +15,13 @@ export function Animate(object) {
     Date.now() + '-' + object.id
   );
 
+  object.updateMatrixWorld();
+
   let context = {
     object,
     id,
     start: (options) => {
+      console.log('Animate object.name, options.deltaVec:', object.name, options.deltaVec)
       transforms.push(animatedTransform(
         object, options.transformFn, options.deltaVec, options.frameLength
       ));
@@ -93,7 +96,7 @@ export function objectsInAnimation() {
  *                  that is used for animation stepping or cancellation 
  */
 export function animatedTransform(object, transformFn, deltaVec, frameLength) {
-  frameLength = (frameLength || 30);
+  frameLength = (frameLength || 20);
 
   // let initialPosition  = object.position.clone();
   let increment = deltaVec.divideScalar(frameLength);
@@ -103,9 +106,9 @@ export function animatedTransform(object, transformFn, deltaVec, frameLength) {
     id: parseInt(Math.random() * 10000).toString(),
     object: object,
     next: () => {
-      framesLeft--;
       if (framesLeft > 0 && deltaVec.length() !== 0) {
         transformFn(object, increment);
+        framesLeft--;
         return true;
       }
       else return false;

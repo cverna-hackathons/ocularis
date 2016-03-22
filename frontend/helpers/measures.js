@@ -70,28 +70,50 @@ export function cameraLookAt() {
                               the objects
  */
 export function getTransformRelation(objectOne, objectTwo, vicinity) {
-  
+
+  console.log('objectOne.name, objectTwo.name:', objectOne.name, objectTwo.name);
+
+  objectOne.updateMatrixWorld();
+  objectTwo.updateMatrixWorld();
+
   let relation       = {};
   
-  let objectOnePos   = new THREE.Vector3();
-  let objectTwoPos   = new THREE.Vector3();
+  let objectOnePos   = objectOne.position.clone();
+  let objectTwoPos   = objectTwo.position.clone();
 
-  let objectOneRot   = objectOne.rotation;
-  let objectTwoRot   = objectTwo.rotation;
+  let objectOneRot   = new THREE.Euler();
+  let objectTwoRot   = new THREE.Euler();
+
+  let oneQuaternion = new THREE.Quaternion();
+  let twoQuaternion = new THREE.Quaternion();
+
+  oneQuaternion.setFromRotationMatrix(objectOne.matrixWorld);
+  twoQuaternion.setFromRotationMatrix(objectTwo.matrixWorld);
 
   objectOnePos.setFromMatrixPosition(objectOne.matrixWorld);
   objectTwoPos.setFromMatrixPosition(objectTwo.matrixWorld);
 
-  let distanceVec = new THREE.Vector3(
-    (objectOnePos.x - objectTwoPos.x),
-    (objectOnePos.y - objectTwoPos.y),
-    (objectOnePos.z - objectTwoPos.z)
-  );
-  let rotationVec = new THREE.Vector3(
-    (objectOneRot.x - objectTwoRot.x),
-    (objectOneRot.y - objectTwoRot.y),
-    (objectOneRot.z - objectTwoRot.z)
-  );
+  objectOneRot.setFromQuaternion(oneQuaternion);
+  objectTwoRot.setFromQuaternion(twoQuaternion);
+
+  console.log(
+    'getTransformRelation | objectOneRot, objectTwoRot, oneQuaternion, twoQuaternion:', 
+    objectOneRot, objectTwoRot, oneQuaternion, twoQuaternion
+  )
+
+  let distanceVec = objectOnePos.sub(objectTwoPos);
+  let rotationVec = objectOneRot.toVector3().sub(objectTwoRot.toVector3());
+
+  // // new THREE.Vector3(
+  // //   (objectOnePos.x - objectTwoPos.x),
+  // //   (objectOnePos.y - objectTwoPos.y),
+  // //   (objectOnePos.z - objectTwoPos.z)
+  // // );
+  // let rotationVec = new THREE.Vector3(
+  //   (objectOneRot.x - objectTwoRot.x),
+  //   (objectOneRot.y - objectTwoRot.y),
+  //   (objectOneRot.z - objectTwoRot.z)
+  // );
 
   relation.distanceVec = distanceVec;
   relation.rotationVec = rotationVec;

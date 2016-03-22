@@ -49,6 +49,9 @@ function Arrow(camera) {
  * 
  */
 function Plane(frame, camera) {
+
+  frame.updateMatrixWorld();
+
   var cameraAspect = camera.aspect;
   var frameParams = frame.geometry.parameters;
   var cameraLookAt = new THREE.Vector3(0, 0, -1);
@@ -59,6 +62,8 @@ function Plane(frame, camera) {
   var frameWidth = cameraWider ? frameParams.height * cameraAspect : frameParams.width;
   var frameHeight = cameraWider ? frameParams.height : frameParams.width * cameraAspect;
   var fittingPlane = new THREE.Mesh(new THREE.PlaneGeometry(frameWidth, frameHeight), new THREE.MeshBasicMaterial({ color: '#00ff00', wireframe: true }));
+
+  fittingPlane.name = 'fittingPlane';
 
   return {
     object: fittingPlane,
@@ -101,19 +106,46 @@ var componentArrangementMap = [
  */
 function getTransformRelation(objectOne, objectTwo, vicinity) {
 
+  console.log('objectOne.name, objectTwo.name:', objectOne.name, objectTwo.name);
+
+  objectOne.updateMatrixWorld();
+  objectTwo.updateMatrixWorld();
+
   var relation = {};
 
-  var objectOnePos = new THREE.Vector3();
-  var objectTwoPos = new THREE.Vector3();
+  var objectOnePos = objectOne.position.clone();
+  var objectTwoPos = objectTwo.position.clone();
 
-  var objectOneRot = objectOne.rotation;
-  var objectTwoRot = objectTwo.rotation;
+  var objectOneRot = new THREE.Euler();
+  var objectTwoRot = new THREE.Euler();
+
+  var oneQuaternion = new THREE.Quaternion();
+  var twoQuaternion = new THREE.Quaternion();
+
+  oneQuaternion.setFromRotationMatrix(objectOne.matrixWorld);
+  twoQuaternion.setFromRotationMatrix(objectTwo.matrixWorld);
 
   objectOnePos.setFromMatrixPosition(objectOne.matrixWorld);
   objectTwoPos.setFromMatrixPosition(objectTwo.matrixWorld);
 
-  var distanceVec = new THREE.Vector3(objectOnePos.x - objectTwoPos.x, objectOnePos.y - objectTwoPos.y, objectOnePos.z - objectTwoPos.z);
-  var rotationVec = new THREE.Vector3(objectOneRot.x - objectTwoRot.x, objectOneRot.y - objectTwoRot.y, objectOneRot.z - objectTwoRot.z);
+  objectOneRot.setFromQuaternion(oneQuaternion);
+  objectTwoRot.setFromQuaternion(twoQuaternion);
+
+  console.log('getTransformRelation | objectOneRot, objectTwoRot, oneQuaternion, twoQuaternion:', objectOneRot, objectTwoRot, oneQuaternion, twoQuaternion);
+
+  var distanceVec = objectOnePos.sub(objectTwoPos);
+  var rotationVec = objectOneRot.toVector3().sub(objectTwoRot.toVector3());
+
+  // // new THREE.Vector3(
+  // //   (objectOnePos.x - objectTwoPos.x),
+  // //   (objectOnePos.y - objectTwoPos.y),
+  // //   (objectOnePos.z - objectTwoPos.z)
+  // // );
+  // let rotationVec = new THREE.Vector3(
+  //   (objectOneRot.x - objectTwoRot.x),
+  //   (objectOneRot.y - objectTwoRot.y),
+  //   (objectOneRot.z - objectTwoRot.z)
+  // );
 
   relation.distanceVec = distanceVec;
   relation.rotationVec = rotationVec;
@@ -168,10 +200,13 @@ function Animate(object) {
   var transforms = [];
   var id = Date.now() + '-' + object.id;
 
+  object.updateMatrixWorld();
+
   var context = {
     object: object,
     id: id,
     start: function start(options) {
+      console.log('Animate object.name, options.deltaVec:', object.name, options.deltaVec);
       transforms.push(animatedTransform(object, options.transformFn, options.deltaVec, options.frameLength));
       _animations[id] = context;
       return context;
@@ -228,7 +263,7 @@ function updateAnimations() {
  *                  that is used for animation stepping or cancellation 
  */
 function animatedTransform(object, transformFn, deltaVec, frameLength) {
-  frameLength = frameLength || 30;
+  frameLength = frameLength || 20;
 
   // let initialPosition  = object.position.clone();
   var increment = deltaVec.divideScalar(frameLength);
@@ -238,9 +273,9 @@ function animatedTransform(object, transformFn, deltaVec, frameLength) {
     id: parseInt(Math.random() * 10000).toString(),
     object: object,
     next: function next() {
-      framesLeft--;
       if (framesLeft > 0 && deltaVec.length() !== 0) {
         transformFn(object, increment);
+        framesLeft--;
         return true;
       } else return false;
     }
@@ -267,8 +302,6 @@ function Director(engine) {
 
   var _previewMode = false;
 
-  var selectedColor = '#ff0000';
-  var unselectedColor = '#eeeeee';
   var activationID = 'componentActivation';
 
   /**
@@ -369,7 +402,7 @@ function Director(engine) {
     var fittingPlane = _fitting.object;
     var _cameraLookAt = _camera.getWorldDirection();
     var cameraPos = _camera.position;
-    var shiftVector = _cameraLookAt.applyQuaternion(_camera.quaternion).multiplyScalar(_fitting.zDistance);
+    var shiftVector = _cameraLookAt.multiplyScalar(_fitting.zDistance);
 
     // Add the dummy fitting plane to scene
     _scene.add(fittingPlane);
@@ -393,7 +426,7 @@ function Director(engine) {
 
     console.log('_inView', _inView);
 
-    component.updateMatrixWorld();
+    // component.updateMatrixWorld();
     // Set up fitting for animation
     setFitting(instance);
     // Get the distance and rotation relations between fitting plane and frame
@@ -403,7 +436,7 @@ function Director(engine) {
     transformRelation.rotationVec.negate();
 
     Animate(component).start({ deltaVec: transformRelation.distanceVec, transformFn: moveBy }).start({ deltaVec: transformRelation.rotationVec, transformFn: rotateBy }).then(function () {
-      renderActivationData(instance);
+      // renderActivationData(instance);
 
       instance._activated = true;
       if (done) return done();
@@ -458,7 +491,6 @@ function Director(engine) {
         _inView.instance = instance;
       }
     });
-    highlightSelection();
   }
 
   function addViewHelper() {
@@ -474,9 +506,10 @@ function Director(engine) {
    */
   function highlightSelection() {
     window.ocularisComponents.forEach(function (instance) {
-      if (_inView.instance && instance.id === _inView.instance.id) {
-        _inView.instance.frame.material.color.set(selectedColor);
-      } else instance.frame.material.color.set(unselectedColor);
+      if (typeof _inView.instance.highlight === 'function') {
+        var isInView = instance.id === _inView.instance.id;
+        _inView.instance.highlight(isInView);
+      }
     });
   }
 
@@ -542,13 +575,12 @@ function Director(engine) {
         var componentConstructor = getComponentConstructor(component.name);
 
         if (typeof componentConstructor === 'function') {
-          var instance = componentConstructor(component.id || Date.now());
+          var instance = componentConstructor(component.id || Date.now(), _debug);
           // Assign order index, will be reused by arrangement
           instance.idx = component.idx;
           // If component is in preview, do not add to global
           // in order to prevent displacement in preview
           _scene.add(instance.component);
-          // instance.frame.visible = (_debug === true);
           if (!_previewMode) {
             arrangeComponent(instance);
             window.ocularisComponents.push(instance);
@@ -572,6 +604,7 @@ function Director(engine) {
    */
   function arrangeComponent(instance, animated, done) {
     var idx = instance.idx;
+    var component = instance.component;
     var arrangement = componentArrangementMap[idx];
 
     if (arrangement) {
@@ -580,15 +613,19 @@ function Director(engine) {
 
       console.log('arrangeComponent, arrangement:', arrangement);
       if (animated) {
-        var deltaPos = pos.sub(instance.component.position);
-        var deltaRot = rot.sub(instance.component.rotation);
+        var deltaPos = pos.sub(component.position);
+        var deltaRot = rot.sub(component.rotation);
 
-        Animate(instance.component).start({ transformFn: moveBy, deltaVec: deltaPos }).start({ transformFn: rotateBy, deltaVec: deltaRot }).then(done);
+        Animate(component).start({ transformFn: moveBy, deltaVec: deltaPos }).start({ transformFn: rotateBy, deltaVec: deltaRot }).then(finalize);
       } else {
-        instance.component.rotation.setFromVector3(rot);
-        instance.component.position.copy(pos);
-        if (done) return done();
+        component.rotation.setFromVector3(rot);
+        component.position.copy(pos);
+        return finalize();
       }
+    }
+
+    function finalize() {
+      if (done) return done();
     }
   }
 

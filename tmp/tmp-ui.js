@@ -53,6 +53,9 @@ function Arrow(camera) {
  * 
  */
 function Plane(frame, camera) {
+
+  frame.updateMatrixWorld();
+
   let cameraAspect  = camera.aspect;
   let frameParams   = frame.geometry.parameters;
   let cameraLookAt  = new THREE.Vector3(0, 0, -1);
@@ -70,6 +73,8 @@ function Plane(frame, camera) {
     new THREE.PlaneGeometry(frameWidth, frameHeight),
     new THREE.MeshBasicMaterial({ color: '#00ff00', wireframe: true })
   );
+  
+  fittingPlane.name = 'fittingPlane';
 
   return {
     object: fittingPlane,
@@ -113,28 +118,50 @@ const componentArrangementMap = [
                               the objects
  */
 function getTransformRelation(objectOne, objectTwo, vicinity) {
-  
+
+  console.log('objectOne.name, objectTwo.name:', objectOne.name, objectTwo.name);
+
+  objectOne.updateMatrixWorld();
+  objectTwo.updateMatrixWorld();
+
   let relation       = {};
   
-  let objectOnePos   = new THREE.Vector3();
-  let objectTwoPos   = new THREE.Vector3();
+  let objectOnePos   = objectOne.position.clone();
+  let objectTwoPos   = objectTwo.position.clone();
 
-  let objectOneRot   = objectOne.rotation;
-  let objectTwoRot   = objectTwo.rotation;
+  let objectOneRot   = new THREE.Euler();
+  let objectTwoRot   = new THREE.Euler();
+
+  let oneQuaternion = new THREE.Quaternion();
+  let twoQuaternion = new THREE.Quaternion();
+
+  oneQuaternion.setFromRotationMatrix(objectOne.matrixWorld);
+  twoQuaternion.setFromRotationMatrix(objectTwo.matrixWorld);
 
   objectOnePos.setFromMatrixPosition(objectOne.matrixWorld);
   objectTwoPos.setFromMatrixPosition(objectTwo.matrixWorld);
 
-  let distanceVec = new THREE.Vector3(
-    (objectOnePos.x - objectTwoPos.x),
-    (objectOnePos.y - objectTwoPos.y),
-    (objectOnePos.z - objectTwoPos.z)
-  );
-  let rotationVec = new THREE.Vector3(
-    (objectOneRot.x - objectTwoRot.x),
-    (objectOneRot.y - objectTwoRot.y),
-    (objectOneRot.z - objectTwoRot.z)
-  );
+  objectOneRot.setFromQuaternion(oneQuaternion);
+  objectTwoRot.setFromQuaternion(twoQuaternion);
+
+  console.log(
+    'getTransformRelation | objectOneRot, objectTwoRot, oneQuaternion, twoQuaternion:', 
+    objectOneRot, objectTwoRot, oneQuaternion, twoQuaternion
+  )
+
+  let distanceVec = objectOnePos.sub(objectTwoPos);
+  let rotationVec = objectOneRot.toVector3().sub(objectTwoRot.toVector3());
+
+  // // new THREE.Vector3(
+  // //   (objectOnePos.x - objectTwoPos.x),
+  // //   (objectOnePos.y - objectTwoPos.y),
+  // //   (objectOnePos.z - objectTwoPos.z)
+  // // );
+  // let rotationVec = new THREE.Vector3(
+  //   (objectOneRot.x - objectTwoRot.x),
+  //   (objectOneRot.y - objectTwoRot.y),
+  //   (objectOneRot.z - objectTwoRot.z)
+  // );
 
   relation.distanceVec = distanceVec;
   relation.rotationVec = rotationVec;
@@ -192,10 +219,13 @@ function Animate(object) {
     Date.now() + '-' + object.id
   );
 
+  object.updateMatrixWorld();
+
   let context = {
     object,
     id,
     start: (options) => {
+      console.log('Animate object.name, options.deltaVec:', object.name, options.deltaVec)
       transforms.push(animatedTransform(
         object, options.transformFn, options.deltaVec, options.frameLength
       ));
@@ -253,7 +283,7 @@ function updateAnimations() {
  *                  that is used for animation stepping or cancellation 
  */
 function animatedTransform(object, transformFn, deltaVec, frameLength) {
-  frameLength = (frameLength || 30);
+  frameLength = (frameLength || 20);
 
   // let initialPosition  = object.position.clone();
   let increment = deltaVec.divideScalar(frameLength);
@@ -263,9 +293,9 @@ function animatedTransform(object, transformFn, deltaVec, frameLength) {
     id: parseInt(Math.random() * 10000).toString(),
     object: object,
     next: () => {
-      framesLeft--;
       if (framesLeft > 0 && deltaVec.length() !== 0) {
         transformFn(object, increment);
+        framesLeft--;
         return true;
       }
       else return false;
@@ -286,8 +316,6 @@ function Director(engine) {
 
   let _previewMode = false;
 
-  const selectedColor   = '#ff0000';
-  const unselectedColor = '#eeeeee';
   const activationID    = 'componentActivation';
 
   /**
@@ -394,9 +422,7 @@ function Director(engine) {
     let fittingPlane = _fitting.object;    
     let _cameraLookAt = _camera.getWorldDirection();
     let cameraPos    = _camera.position;
-    let shiftVector  = _cameraLookAt
-        .applyQuaternion(_camera.quaternion)
-        .multiplyScalar(_fitting.zDistance);
+    let shiftVector  = _cameraLookAt.multiplyScalar(_fitting.zDistance);
     
     // Add the dummy fitting plane to scene
     _scene.add(fittingPlane);
@@ -418,7 +444,7 @@ function Director(engine) {
 
     console.log('_inView', _inView);
 
-    component.updateMatrixWorld();
+    // component.updateMatrixWorld();
     // Set up fitting for animation 
     setFitting(instance);
     // Get the distance and rotation relations between fitting plane and frame
@@ -432,7 +458,7 @@ function Director(engine) {
       .start({ deltaVec: transformRelation.distanceVec, transformFn: moveBy })
       .start({ deltaVec: transformRelation.rotationVec, transformFn: rotateBy })
     .then(() => {
-      renderActivationData(instance);
+      // renderActivationData(instance);
       
       instance._activated = true;
       if (done) return done();
@@ -487,7 +513,6 @@ function Director(engine) {
         _inView.instance  = instance;
       }
     });
-    highlightSelection();
   }
 
   function addViewHelper() {
@@ -503,9 +528,10 @@ function Director(engine) {
    */
   function highlightSelection() {
     window.ocularisComponents.forEach((instance) => {
-      if (_inView.instance && instance.id === _inView.instance.id) {
-        _inView.instance.frame.material.color.set(selectedColor);
-      } else instance.frame.material.color.set(unselectedColor);
+      if (typeof(_inView.instance.highlight) === 'function') {
+        let isInView = (instance.id === _inView.instance.id);
+        _inView.instance.highlight(isInView);
+      }
     });
   }
 
@@ -569,13 +595,12 @@ function Director(engine) {
         var componentConstructor = getComponentConstructor(component.name);
 
         if (typeof componentConstructor === 'function') {
-          var instance = componentConstructor(component.id || Date.now());
+          var instance = componentConstructor(component.id || Date.now(), _debug);
           // Assign order index, will be reused by arrangement
           instance.idx = component.idx;
           // If component is in preview, do not add to global
           // in order to prevent displacement in preview
           _scene.add(instance.component);
-          // instance.frame.visible = (_debug === true);
           if (!_previewMode) {
             arrangeComponent(instance);
             window.ocularisComponents.push(instance);
@@ -602,6 +627,7 @@ function Director(engine) {
    */
   function arrangeComponent(instance, animated, done) {
     let idx         = instance.idx;
+    let component   = instance.component;
     let arrangement = componentArrangementMap[idx];
 
     if (arrangement) {
@@ -610,18 +636,22 @@ function Director(engine) {
       
       console.log('arrangeComponent, arrangement:', arrangement)
       if (animated) {
-        let deltaPos = pos.sub(instance.component.position);
-        let deltaRot = rot.sub(instance.component.rotation);
+        let deltaPos = pos.sub(component.position);
+        let deltaRot = rot.sub(component.rotation);
 
-        Animate(instance.component)
+        Animate(component)
           .start({ transformFn: moveBy, deltaVec: deltaPos })
           .start({ transformFn: rotateBy, deltaVec: deltaRot })
-        .then(done);
+        .then(finalize);
       } else {
-        instance.component.rotation.setFromVector3(rot);
-        instance.component.position.copy(pos);
-        if (done) return done();
+        component.rotation.setFromVector3(rot);
+        component.position.copy(pos);
+        return finalize();
       }
+    }
+
+    function finalize() {
+      if (done) return done();
     }
   }
 
