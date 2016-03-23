@@ -4,7 +4,7 @@ export default function() {
     FOV: 75,
     CUTOFF: 0.1,
     ASPECT_RATIO: window.innerWidth / window.innerHeight,
-    TARGET_DISTANCE: 10000
+    TARGET_DISTANCE: 500
   };
 
   return new THREE.PerspectiveCamera(

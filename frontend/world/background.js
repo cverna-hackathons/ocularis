@@ -2,7 +2,7 @@ export default function (options, done) {
 
   options = options || { 
     bgPath: 'images/backdrop_desert.jpg',
-    radius: 20,
+    radius: 50,
     hCutOff: 0,
     vCutOff: 1,
     resolution: 20 

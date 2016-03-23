@@ -12,7 +12,7 @@ function Background(options, done) {
 
   options = options || {
     bgPath: 'images/backdrop_desert.jpg',
-    radius: 20,
+    radius: 50,
     hCutOff: 0,
     vCutOff: 1,
     resolution: 20
@@ -688,7 +688,7 @@ function Camera() {
     FOV: 75,
     CUTOFF: 0.1,
     ASPECT_RATIO: window.innerWidth / window.innerHeight,
-    TARGET_DISTANCE: 10000
+    TARGET_DISTANCE: 500
   };
 
   return new THREE.PerspectiveCamera(config.FOV, config.ASPECT_RATIO, config.CUTOFF, config.TARGET_DISTANCE);
