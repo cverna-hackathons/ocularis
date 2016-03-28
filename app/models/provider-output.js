@@ -18,7 +18,7 @@ module.exports = function(sequelize, DataTypes) {
       associate: function(models) {
         // associations can be defined here
         ProviderOutput.belongsTo(models.Provider);
-        ProviderOutput.hasOne(models.DataType);
+        ProviderOutput.belongsTo(models.DataType);
       }
     }
   });

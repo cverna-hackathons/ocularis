@@ -12,7 +12,11 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     classMethods: {
       associate: (models) => {
-        ComponentField.hasMany(models.ComponentFieldDataType);
+        ComponentField.belongsToMany(models.DataType, {
+          through: {
+            model: models.ComponentFieldDataType
+          }
+        });
         ComponentField.belongsTo(models.Component);
       }
     }

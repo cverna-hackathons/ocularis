@@ -9,9 +9,9 @@ module.exports = (sequelize, DataTypes) => {
     classMethods: {
       associate: (models) => {
         ComponentProviderBinding.belongsTo(models.WorldElement);
-        ComponentProviderBinding.hasOne(models.ProviderOutput);
-        ComponentProviderBinding.hasOne(models.ComponentField);
-        ComponentProviderBinding.hasOne(models.Event);
+        ComponentProviderBinding.belongsTo(models.ProviderOutput);
+        ComponentProviderBinding.belongsTo(models.ComponentField);
+        ComponentProviderBinding.belongsTo(models.Event);
       }
     }
   });
