@@ -48,6 +48,7 @@
     "watch": "^0.17.1"
   },
   "devDependencies": {
+    "rollup-plugin-json": "^2.0.0",
     "rollup-plugin-node-resolve": "^1.4.0"
   }
 }

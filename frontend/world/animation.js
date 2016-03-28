@@ -15,6 +15,8 @@ export function Animate(object) {
     Date.now() + '-' + object.id
   );
 
+  object.updateMatrixWorld();
+
   let context = {
     object,
     id,
@@ -82,7 +84,6 @@ export function objectsInAnimation() {
   return running;
 }
 
-
 /**
  * Transforms (animated) to a vector 
  * (by transforming initial vectors with transform function)
@@ -94,7 +95,7 @@ export function objectsInAnimation() {
  *                  that is used for animation stepping or cancellation 
  */
 export function animatedTransform(object, transformFn, deltaVec, frameLength) {
-  frameLength = (frameLength || 60);
+  frameLength = (frameLength || 20);
 
   // let initialPosition  = object.position.clone();
   let increment = deltaVec.divideScalar(frameLength);
@@ -104,9 +105,9 @@ export function animatedTransform(object, transformFn, deltaVec, frameLength) {
     id: parseInt(Math.random() * 10000).toString(),
     object: object,
     next: () => {
-      framesLeft--;
       if (framesLeft > 0 && deltaVec.length() !== 0) {
         transformFn(object, increment);
+        framesLeft--;
         return true;
       }
       else return false;

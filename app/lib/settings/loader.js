@@ -9,7 +9,7 @@ module.exports = (function() {
   function defaultSettings() {
     var DEFAULTS = {
       name: 'Default world',
-      debug: true,
+      debug: false,
       ui: {
         activationKey: 'spacebar'
       },
@@ -25,16 +25,6 @@ module.exports = (function() {
           }
         },
         {
-          name: 'ocularis-pane',
-          id: 'hn-ocularis-cube',
-          provider: {
-            type: 'feed',
-            name: 'HN feed',
-            description: 'Provides HN feed browsing.',
-            id: 'hn'
-          }
-        },
-        {
           name: 'ocularis-cube',
           id: 'ld-ocularis-cube',
           provider: {
@@ -42,6 +32,16 @@ module.exports = (function() {
             name: 'LD feed',
             description: 'Provides LD feed browsing.',
             id: 'ld'
+          }
+        },
+        {
+          name: 'ocularis-pane',
+          id: 'hn-ocularis-pane',
+          provider: {
+            type: 'feed',
+            name: 'HN feed',
+            description: 'Provides HN feed browsing.',
+            id: 'hn'
           }
         }
       ],

@@ -1,6 +1,6 @@
 /**
  * Return fitting plane properties
- * @param  {Object THREE.Plane} Frame that bounds the object viewable area
+ * @param  {Object THREE.Mesh} Frame that bounds the object viewable area
  * @param  {Object THREE.Camera} Scene camera object
  * @return {Object object: THREE.Plane, zDistance: Float} Plane that is scaled 
  *         to our component frame and zDistance that gives us distance from camera
@@ -8,6 +8,9 @@
  * 
  */
 export function Plane(frame, camera) {
+
+  frame.updateMatrixWorld();
+
   let cameraAspect  = camera.aspect;
   let frameParams   = frame.geometry.parameters;
   let cameraLookAt  = new THREE.Vector3(0, 0, -1);
@@ -25,6 +28,8 @@ export function Plane(frame, camera) {
     new THREE.PlaneGeometry(frameWidth, frameHeight),
     new THREE.MeshBasicMaterial({ color: '#00ff00', wireframe: true })
   );
+  
+  fittingPlane.name = 'fittingPlane';
 
   return {
     object: fittingPlane,

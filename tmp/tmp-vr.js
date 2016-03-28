@@ -1,30 +1,3 @@
-/**
- * Moves (NO animation) object to a distance vector (by adding the position and distance vectors)
- * @param  {THREE.Object} object that is to be moved
- * @param  {THREE.Vector3} Distance vector
- * @return {void} 
- */
-function moveBy(object, distanceVec) {
-  object.position.add(distanceVec);
-}
-
-/**
- * Rotates (NO animation) object to given rotation vector
- * @param  {THREE.Object} object that is to be moved
- * @param  {THREE.Vector3} Rotation vector
- * @return {void} 
- */
-function rotateBy(object, rotationVec) {
-
-  console.log('rotateBy | rotationVec, object.rotation:', rotationVec, object.rotation)
-
-  let rot = object.rotation.toVector3();
-
-  rot.addVectors(rot, rotationVec);
-
-  object.rotation.setFromVector3(rot);
-}
-
 function Scene() {
   return new THREE.Scene();
 }
@@ -36,8 +9,8 @@ function Light() {
 function Background (options, done) {
 
   options = options || { 
-    bgPath: 'images/backdrop_mountains.jpg',
-    radius: 20,
+    bgPath: 'images/backdrop_desert.jpg',
+    radius: 50,
     hCutOff: 0,
     vCutOff: 1,
     resolution: 20 
@@ -45,9 +18,9 @@ function Background (options, done) {
 
   let texLoader   = new THREE.TextureLoader();
   let sphere      = new THREE.SphereGeometry(
-    options.radius, options.resolution, options.resolution, 
-      (Math.PI + options.hCutOff), (Math.PI - (2 * options.hCutOff)), options.vCutOff,
-      (Math.PI - (2 * options.vCutOff))
+    options.radius, options.resolution, options.resolution
+    // , (Math.PI + options.hCutOff), (Math.PI - (2 * options.hCutOff)), options.vCutOff,
+    //   (Math.PI - (2 * options.vCutOff))
   );
   let material    = new THREE.MeshBasicMaterial({
     side: THREE.BackSide
@@ -76,7 +49,7 @@ function Arrow(camera) {
 
 /**
  * Return fitting plane properties
- * @param  {Object THREE.Plane} Frame that bounds the object viewable area
+ * @param  {Object THREE.Mesh} Frame that bounds the object viewable area
  * @param  {Object THREE.Camera} Scene camera object
  * @return {Object object: THREE.Plane, zDistance: Float} Plane that is scaled 
  *         to our component frame and zDistance that gives us distance from camera
@@ -84,6 +57,9 @@ function Arrow(camera) {
  * 
  */
 function Plane(frame, camera) {
+
+  frame.updateMatrixWorld();
+
   let cameraAspect  = camera.aspect;
   let frameParams   = frame.geometry.parameters;
   let cameraLookAt  = new THREE.Vector3(0, 0, -1);
@@ -101,6 +77,8 @@ function Plane(frame, camera) {
     new THREE.PlaneGeometry(frameWidth, frameHeight),
     new THREE.MeshBasicMaterial({ color: '#00ff00', wireframe: true })
   );
+  
+  fittingPlane.name = 'fittingPlane';
 
   return {
     object: fittingPlane,
@@ -143,34 +121,37 @@ const componentArrangementMap = [
  * @return {Object}           Returns object with info about distance, rotation between 
                               the objects
  */
-function getTransformRelation(objectOne, objectTwo, vicinity) {
-  
+function getTransformRelation(objectOne, objectTwo) {
+
+  objectOne.updateMatrixWorld();
+  objectTwo.updateMatrixWorld();
+
   let relation       = {};
   
-  let objectOnePos   = new THREE.Vector3();
-  let objectTwoPos   = new THREE.Vector3();
+  let objectOnePos   = objectOne.position.clone();
+  let objectTwoPos   = objectTwo.position.clone();
 
-  let objectOneRot   = objectOne.rotation;
-  let objectTwoRot   = objectTwo.rotation;
+  let objectOneRot   = new THREE.Euler();
+  let objectTwoRot   = new THREE.Euler();
+
+  let oneQuaternion = new THREE.Quaternion();
+  let twoQuaternion = new THREE.Quaternion();
+
+  oneQuaternion.setFromRotationMatrix(objectOne.matrixWorld);
+  twoQuaternion.setFromRotationMatrix(objectTwo.matrixWorld);
 
   objectOnePos.setFromMatrixPosition(objectOne.matrixWorld);
   objectTwoPos.setFromMatrixPosition(objectTwo.matrixWorld);
 
-  let distanceVec = new THREE.Vector3(
-    (objectOnePos.x - objectTwoPos.x),
-    (objectOnePos.y - objectTwoPos.y),
-    (objectOnePos.z - objectTwoPos.z)
-  );
-  let rotationVec = new THREE.Vector3(
-    (objectOneRot.x - objectTwoRot.x),
-    (objectOneRot.y - objectTwoRot.y),
-    (objectOneRot.z - objectTwoRot.z)
-  );
+  objectOneRot.setFromQuaternion(oneQuaternion);
+  objectTwoRot.setFromQuaternion(twoQuaternion);
+
+  let distanceVec = objectOnePos.sub(objectTwoPos);
+  let rotationVec = objectOneRot.toVector3().sub(objectTwoRot.toVector3());
 
   relation.distanceVec = distanceVec;
   relation.rotationVec = rotationVec;
   relation.distance    = objectOnePos.distanceTo(objectTwoPos);
-  relation.isClose     = (relation.distance < vicinity);
 
   return relation;
 }
@@ -182,6 +163,28 @@ function loadSettings(done) {
     }
     else return done('Unable to load user configuration.');
   });
+}
+
+/**
+ * Moves (NO animation) object to a distance vector (by adding the position and distance vectors)
+ * @param  {THREE.Object} object that is to be moved
+ * @param  {THREE.Vector3} Distance vector
+ * @return {void} 
+ */
+function moveBy(object, distanceVec) {
+  object.position.add(distanceVec);
+}
+
+/**
+ * Rotates (NO animation) object to given rotation vector
+ * @param  {THREE.Object} object that is to be moved
+ * @param  {THREE.Vector3} Rotation vector
+ * @return {void} 
+ */
+function rotateBy(object, rotationVec) {
+  let rot = object.rotation.toVector3();
+  rot.addVectors(rot, rotationVec);
+  object.rotation.setFromVector3(rot);
 }
 
 let _animations = {};
@@ -200,6 +203,8 @@ function Animate(object) {
   let id            = (
     Date.now() + '-' + object.id
   );
+
+  object.updateMatrixWorld();
 
   let context = {
     object,
@@ -262,7 +267,7 @@ function updateAnimations() {
  *                  that is used for animation stepping or cancellation 
  */
 function animatedTransform(object, transformFn, deltaVec, frameLength) {
-  frameLength = (frameLength || 60);
+  frameLength = (frameLength || 20);
 
   // let initialPosition  = object.position.clone();
   let increment = deltaVec.divideScalar(frameLength);
@@ -272,9 +277,9 @@ function animatedTransform(object, transformFn, deltaVec, frameLength) {
     id: parseInt(Math.random() * 10000).toString(),
     object: object,
     next: () => {
-      framesLeft--;
       if (framesLeft > 0 && deltaVec.length() !== 0) {
         transformFn(object, increment);
+        framesLeft--;
         return true;
       }
       else return false;
@@ -295,8 +300,6 @@ function Director(engine) {
 
   let _previewMode = false;
 
-  const selectedColor   = '#ff0000';
-  const unselectedColor = '#eeeeee';
   const activationID    = 'componentActivation';
 
   /**
@@ -361,39 +364,61 @@ function Director(engine) {
    */
   function toggleComponentActivation() {
     // XXX: just changing rotation for testing
-    _camera.rotation.z += ((Math.PI / 180) * 1);
+    _camera.rotation.z += ((Math.PI / 180) * 2);
+    _camera.rotation.y += ((Math.PI / 180) * 2);
+    _camera.position.x -= .1;
 
-    // Check the instance in view and is not already activated
-    // If there is one, check it's view frame distance to camera
-    if (_inView.instance && !_inView.instance._activated) {
-      window.ocularisComponents.forEach(instance => {
-        if (_inView.instance.id === instance.id) {
-          activateComponent(instance);
-        } else if (instance._activated) deactivateComponent(instance);
-      });
-    }
-    else if (_inView.instance && _inView.instance._activated) {
-      deactivateComponent(_inView.instance);
-    }
-    else console.log('No component in view.');
+    let instanceInView = _inView.instance;
+
+    if (_inView.instance && !_inView.instance._noEvents) {
+      // Check the instance in view and is not already activated
+      // If there is one, check it's view frame distance to camera
+      if (!instanceInView._activated) {
+        window.ocularisComponents.forEach(instance => {
+          if (instanceInView.id === instance.id) {
+            instance._noEvents = true;
+            activateComponent(instance, () => {
+              instance._noEvents = false;
+            });
+          } else if (instance._activated) {
+            instance._noEvents = true;
+            deactivateComponent(instance, () => {
+              instance._noEvents = false;
+            });
+          }
+        });
+      }
+      else if (instanceInView._activated) {
+
+        instanceInView._noEvents = true;
+        deactivateComponent(instanceInView, () => {
+          instanceInView._noEvents = false;
+        });
+      }
+    }      
+    else console.log('No component in view or no events allowed.');
   }
 
   function setFitting(instance) {
+    // if (_fitting) {
+    //   _scene.remove(_fitting.object);
+    // }
+
+    _camera.updateMatrixWorld();
     _fitting = Plane(instance.frame, _camera);
     // Update transform matrix according to world, 
     // so we get the correct transform relation
     
     let fittingPlane = _fitting.object;    
-    let _cameraLookAt = _camera.getWorldDirection();
-    let cameraPos    = _camera.position;
-    let shiftVector  = _cameraLookAt
-        .applyQuaternion(_camera.quaternion)
-        .multiplyScalar(_fitting.zDistance);
+    let _cameraLookAt= _camera.getWorldDirection();
+    let cameraPos    = _camera.position.clone();
+    let shiftVector  = 
+      _cameraLookAt.multiplyScalar(_fitting.zDistance);
     
     // Add the dummy fitting plane to scene
     _scene.add(fittingPlane);
     // Move and rotate the fitting plane
-    fittingPlane.position.addVectors(_cameraLookAt, shiftVector);
+    fittingPlane.position.copy(cameraPos.add(shiftVector));
     fittingPlane.rotation.copy(_camera.rotation);
     console.log('shiftVector, _camera.rotation, _cameraLookAt:', shiftVector, _camera.rotation, _cameraLookAt);
     console.log('_fitting:', _fitting);
@@ -405,15 +430,14 @@ function Director(engine) {
    * Align component to a fitting plane visible from camera, move and rotate
    * @return {void}
    */
-  function activateComponent(instance) {
+  function activateComponent(instance, done) {
     let component = instance.component;
 
     console.log('_inView', _inView);
 
-    // _camera.updateMatrixWorld();
+    // component.updateMatrixWorld();
     // Set up fitting for animation 
     setFitting(instance);
-   
     // Get the distance and rotation relations between fitting plane and frame
     let transformRelation = 
       getTransformRelation(instance.frame, _fitting.object, 1);
@@ -426,24 +450,30 @@ function Director(engine) {
       .start({ deltaVec: transformRelation.rotationVec, transformFn: rotateBy })
     .then(() => {
       renderActivationData(instance);
-      instance.component.updateMatrixWorld();
+      instance._activated = true;
+      if (done) return done();
     });
     
-    instance._activated = true;
     console.log('transformRelation:', transformRelation);
-
   }
 
   function renderActivationData(instance) {
     // Get initial data from provider
     // Render it to drawables
-    instance.draw([{
-      drawableId: 'main',
-      content: 'Go is a fascinating strategy board game that\'s been popular for at least 2,500 years, and probably more. Its simple rules and deep strategies have intrigued everyone from emperors to peasants for hundreds of generations. And they still do today. The game Go has fascinated people for thousands of years.',
-      type: 'text',
-      bgColor: 'rgba(0, 0, 0, 0.3)',
-      textColor: 'rgba(255, 255, 255, 0.7)'
-    }]);
+    instance.draw([
+      {
+        drawableId: 'main',
+        content: 'Go is a fascinating strategy board game that\'s been popular for at least 2,500 years, and probably more. Its simple rules and deep strategies have intrigued everyone from emperors to peasants for hundreds of generations. And they still do today. The game Go has fascinated people for thousands of years.',
+        type: 'text',
+        bgColor: 'rgba(0, 0, 0, 0.3)',
+        textColor: 'rgba(255, 255, 255, 0.7)'
+      },
+      {
+        drawableId: 'leftSide',
+        content: 'images/sample_image_for_leftside.jpg',
+        type: 'image'
+      },
+    ]);
   }
 
   /**
@@ -451,10 +481,10 @@ function Director(engine) {
    * @param  {Object} Component instance to rearrange
    * @return {void}
    */
-  function deactivateComponent(instance) {
+  function deactivateComponent(instance, done) {
     instance.deactivate();
     instance._activated = false;
-    arrangeComponent(instance, true);
+    arrangeComponent(instance, true, done);
   }
 
   /**
@@ -480,7 +510,6 @@ function Director(engine) {
         _inView.instance  = instance;
       }
     });
-    highlightSelection();
   }
 
   function addViewHelper() {
@@ -496,9 +525,10 @@ function Director(engine) {
    */
   function highlightSelection() {
     window.ocularisComponents.forEach((instance) => {
-      if (_inView.instance && instance.id === _inView.instance.id) {
-        _inView.instance.frame.material.color.set(selectedColor);
-      } else instance.frame.material.color.set(unselectedColor);
+      if (typeof(_inView.instance.highlight) === 'function') {
+        let isInView = (instance.id === _inView.instance.id);
+        _inView.instance.highlight(isInView);
+      }
     });
   }
 
@@ -516,7 +546,7 @@ function Director(engine) {
           addComponent(component);
         });
         Background(null, (bg) => _scene.add(bg));
-        _scene.fog = new THREE.FogExp2(0xeeeeee, 0.05);
+        // _scene.fog = new THREE.FogExp2(0xeeeeee, 0.05);
         if (done) return done();
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });
@@ -562,7 +592,7 @@ function Director(engine) {
         var componentConstructor = getComponentConstructor(component.name);
 
         if (typeof componentConstructor === 'function') {
-          var instance = componentConstructor(component.id || Date.now());
+          var instance = componentConstructor(component.id || Date.now(), _debug);
           // Assign order index, will be reused by arrangement
           instance.idx = component.idx;
           // If component is in preview, do not add to global
@@ -587,11 +617,14 @@ function Director(engine) {
 
   /**
    * Arranges component according to it's order in scene
-   * @param  {instance: Object} Component instance
+   * @param  {Object} Component instance
+   * @param  {Boolean} If this arrangement is to be animated
+   * @param  {Boolean} If this arrangement is to be animated
    * @return {void}
    */
-  function arrangeComponent(instance, animated) {
+  function arrangeComponent(instance, animated, done) {
     let idx         = instance.idx;
+    let component   = instance.component;
     let arrangement = componentArrangementMap[idx];
 
     if (arrangement) {
@@ -600,16 +633,22 @@ function Director(engine) {
       
       console.log('arrangeComponent, arrangement:', arrangement)
       if (animated) {
-        let deltaPos = pos.sub(instance.component.position);
-        let deltaRot = rot.sub(instance.component.rotation);
+        let deltaPos = pos.sub(component.position);
+        let deltaRot = rot.sub(component.rotation);
 
-        Animate(instance.component)
+        Animate(component)
           .start({ transformFn: moveBy, deltaVec: deltaPos })
           .start({ transformFn: rotateBy, deltaVec: deltaRot })
+        .then(finalize);
       } else {
-        instance.component.rotation.setFromVector3(rot);
-        instance.component.position.copy(pos);
+        component.rotation.setFromVector3(rot);
+        component.position.copy(pos);
+        return finalize();
       }
+    }
+
+    function finalize() {
+      if (done) return done();
     }
   }
 
@@ -645,7 +684,7 @@ function Director(engine) {
 
 function Renderer() {
   let renderer = new THREE.WebGLRenderer();
-  renderer.setPixelRatio(window.devicePixelRatio);
+  // renderer.setPixelRatio(window.devicePixelRatio);
 
   return renderer;
 }
@@ -678,7 +717,7 @@ function Camera() {
     FOV: 75,
     CUTOFF: 0.1,
     ASPECT_RATIO: window.innerWidth / window.innerHeight,
-    TARGET_DISTANCE: 10000
+    TARGET_DISTANCE: 500
   };
 
   return new THREE.PerspectiveCamera(
@@ -708,7 +747,7 @@ function Events() {
   var listeners = {};
 
   function getEventKeyDirection (event, trigger) {
-    console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
+    // console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
     var key;
     switch (event.keyCode) {
       // W-key

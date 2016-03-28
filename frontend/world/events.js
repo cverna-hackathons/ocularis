@@ -2,7 +2,7 @@ export default function() {
   var listeners = {};
 
   function getEventKeyDirection (event, trigger) {
-    console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
+    // console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
     var key;
     switch (event.keyCode) {
       // W-key
