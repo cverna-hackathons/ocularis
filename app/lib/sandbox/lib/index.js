@@ -57,7 +57,7 @@ function sandbox() {
   function assignComponentPaths(component) {
     component.buildScript = 'npm run build';
     component.sourceDir   = path.resolve(
-      __dirname, '../node_modules', component.name
+      __dirname, '../components', component.name
     );
     component.sourcePath  = path.resolve(component.sourceDir, 'dist', 'index.js');
     component.buildPath   = path.resolve(buildDir, component.name + '.js');

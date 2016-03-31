@@ -9,17 +9,19 @@
  * e.q node ./register_compnent false ocularis-cube git@github.com:cverna-hackathons/ocularis-cube.git
  */
 
-let path = require('path');
-let models = require('../app/models');
-let async = require('async');
-let cProc = require('child_process');
-let moduleDirToSandbox = path.resolve(__dirname, '../app/lib/sandbox');
-let moduleDirToSandboxModules = path.resolve(moduleDirToSandbox, 'node_modules');
+let path                    = require('path');
+let models                  = require('../app/models');
+let async                   = require('async');
+let cProc                   = require('child_process');
+let dirToSandbox            = path.resolve(__dirname, '../app/lib/sandbox');
+let dirToSandboxModule      = path.resolve(dirToSandbox, 'lib');
+let sandbox                 = require(dirToSandboxModule)();
+let dirToSandboxComponents  = path.resolve(dirToSandbox, 'components');
 
-let args = process.argv.slice(2);
-let getByNpm = args[0];
-let name = args[1];
-let url = args[2];
+let args                    = process.argv.slice(2);
+let getByNpm                = (args[0] === 'true');
+let name                    = args[1];
+let url                     = args[2];
 
 /**
  * @IMPORTANT
@@ -29,17 +31,28 @@ let url = args[2];
 let CREATING_DATA_TYPES = true;
 
 if (!name || !url) {
-  console.error('Not provided name or/and url. Exiting.');
+  console.error('Name or/and url not provided. Exiting...');
   process.exit(1);
 }
 
 //we need to fetch module and parse manifest and persist data
-let move = (getByNpm == 'true') ? `cd ${moduleDirToSandbox} && rm -rf ${name}` : `cd ${moduleDirToSandboxModules} && rm -rf ${name}`;
-let buildCommand = (getByNpm == 'true') ? `npm install --save ${name}` : `git clone ${url}`;
-let postbuildCommand = ((getByNpm == 'true') ? `cd node_modules/${name}` : `cd ${name}`) + ` && npm install && npm run build`;
-let cmd = `${move} && ${buildCommand} && ${postbuildCommand}`;
+let cmds = [
+  // clean up
+  (getByNpm ? 
+      `cd ${dirToSandbox} && rm -rf ${name}` : 
+      `cd ${dirToSandboxComponents} && rm -rf ${name}`
+  ),
+  // build
+  (getByNpm ? `npm install --save ${name}` : `git clone ${url}`),
+  // post build
+  ((
+    getByNpm ? `cd node_modules/${name}` : `cd ${name}`
+  ) + ` && npm install && npm run build`)
+];
 
+let cmd = cmds.join(' && ');
 console.log('Running: ', cmd);
+
 cProc.exec(cmd, (err) => {
   if (err) {
     console.error(`Couldn\'t fetch the module: ${err}`);
@@ -48,7 +61,9 @@ cProc.exec(cmd, (err) => {
 
   //at this point we have fetched repo inside sandbox modules
   //now we need to parse its manifest and persist in DBS
-  let manifest = require(`${path.resolve(moduleDirToSandboxModules, name, 'ocularis-manifest.json')}`);
+  let manifest = require(
+    `${path.resolve(dirToSandboxComponents, name, 'ocularis-manifest.json')}`
+  );
 
   models.Component.find({
     where: {
@@ -56,22 +71,26 @@ cProc.exec(cmd, (err) => {
       url: url
     }
   }).then((component) => {
-    if(component)
+    if(component) {
       updateComponent(component, manifest, resolve)
-    else
-      createComponent(manifest, resolve);
+    } else createComponent(manifest, resolve);
 
     function resolve(err) {
       if (err) {
         console.error(err);
         process.exit(1);
       } else {
-        console.log(`${name}: Saved.`);
+        console.log(`Component ${name} saved, building front-end file.`);
         //final step is to rebuild front-end of app, so
         //new component is available for public
-        cProc.exec(`cd ${path.resolve(__dirname, '../')} && npm run build:components`, (err) => {
-          if (err) process.exit(1);
-          else process.exit(0);
+        sandbox.createComponentFile({ name }, (err) => {
+          if (err) {
+            console.error('Unable to build components, exiting');
+            process.exit(1);
+          } else {
+            console.log(`Finished component (${name}) registration.`);
+            process.exit(0);
+          }
         });
       }
     }
@@ -86,10 +105,10 @@ cProc.exec(cmd, (err) => {
  * @param  {Object} manifest
  * @return {Promise}
  */
-function updateComponent(component, manifest, callback) {
+function updateComponent(component, manifest, done) {
   console.log('Updating component...');
   //TODO
-  component.destroy({force: true}).then(() => createComponent(manifest, callback));
+  component.destroy({force: true}).then(() => createComponent(manifest, done));
 }
 
 /**
@@ -97,7 +116,7 @@ function updateComponent(component, manifest, callback) {
  * @param  {Object} manifest
  * @return {Promise}
  */
-function createComponent(manifest, callback) {
+function createComponent(manifest, done) {
   console.log('Creating component...');
 
   let allUsedTypes = manifest.fields.reduce((prevVal, f) => {
@@ -108,42 +127,42 @@ function createComponent(manifest, callback) {
     libName: manifest.name,
     name: manifest.name,
     url: manifest.url,
-    byNpm: getByNpm == 'true'
+    byNpm: getByNpm
   }).then((component) => {
     console.log('Component created.');
     findOrCreateAllTypes(allUsedTypes, (err, types) => {
-      if (err) { callback(err); }
+      if (err) { return done(err); }
 
       let fieldsPromises = manifest.fields.reduce((prevVal, f) => {
         let fieldTypes = types.filter((t) => {
           return f.types.indexOf(t.name) !== -1;
         });
-        prevVal.push(_call => {
+        prevVal.push(next => {
           let newCF = models.ComponentField.create({
             name: f.name
           }).then((cf) => {
             async.parallel([
               (_c) => cf.setComponent(component).then(() => _c()).catch(err => _c(err)),
               (_c) => cf.setDataTypes(fieldTypes).then(() => _c()).catch(err => _c(err))
-            ], (err, results) => _call(err));
+            ], (err, results) => next(err));
           })
-          .catch(err => _call(err));
+          .catch(err => next(err));
         });
         return prevVal;
       }, []);
       console.log('Creating component fields...');
       async.parallel(fieldsPromises, (err, results) => {
         if (err) {
-          callback(err);
+          return done(err);
         } else {
-          callback(null, results);
+          return done(null, results);
         }
       })
     });
-  }).catch(err => callback(err));
+  }).catch(err => done(err));
 }
 
-function findOrCreateAllTypes(types, resultCallback) {
+function findOrCreateAllTypes(types, done) {
   let promises = [];
   if (!CREATING_DATA_TYPES) {
     models.DataType.findAll({
@@ -152,23 +171,24 @@ function findOrCreateAllTypes(types, resultCallback) {
           $in: types
         }
       }
-    }).then((results) => resultCallback(null, results))
-      .catch(err => resultCallback(err));
+    }).then((results) => done(null, results))
+      .catch(err => done(err));
 
     return;
   }
 
-  types.forEach((t) => {
-    promises.push(nestedCallback => {
+  types.forEach((typeName) => {
+    promises.push(next => {
         models.DataType.findOrCreate({
           where: {
-            name: t
+            name: typeName
           }
-        }).then((dt) => nestedCallback(null, dt[0]))
-        .catch(err => nestedCallback(err))
+        }).then((dataType) => next(null, dataType[0]))
+        .catch(err => next(err))
     });
   });
   async.parallel(promises, (err, results) => {
-    resultCallback(err, results);
+    console.log('findOrCreateAllTypes | err:', err);
+    done(err, results);
   });
 }

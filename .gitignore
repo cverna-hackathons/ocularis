@@ -5,4 +5,5 @@ node_modules/
 public/js/ui.js
 public/js/vr.js
 public/sandbox/*.js
+app/lib/sandbox/npm-debug.log
 tmp/*.js

@@ -14,45 +14,60 @@ let USERS = [{
   passowrd: 'pelo'
 }];
 
-let COMPONENTS = [{
-  byNpm: false,
-  name: 'ocularis-cube',
-  git: 'git@github.com:cverna-hackathons/ocularis-cube.git'
-}];
+let COMPONENTS = [
+  {
+    byNpm: false,
+    name: 'ocularis-cube',
+    git: 'git@github.com:cverna-hackathons/ocularis-cube.git'
+  },
+  {
+    byNpm: false,
+    name: 'ocularis-pane',
+    git: 'git@github.com:cverna-hackathons/ocularis-pane.git'
+  }
+];
 
 let tasks = [
-
   //seed all users
-  (call) => {
+  (done) => {
     let promises = USERS.reduce((mem, u) => {
-      mem.push((_c) => {
+      mem.push((next) => {
+        console.log('Seeding user:', u.username);
         models.User.findOrCreate({
           where: {
             username: u.username,
             email: u.email,
             password: u.password
           }
-        }).then(()=>_c())
-          .catch(err => _c(err))
+        }).then(()=>next()).catch(err => next(err))
       });
       return mem;
     }, []);
-    async.parallel(promises, (err) => call(err));
+    async.parallel(promises, (err) => done(err));
   },
-
   //seed all components
-  (call) => {
+  (done) => {
     let promises = COMPONENTS.reduce((mem, c) => {
-      mem.push((_c) => {
-        cProc.exec(`npm run register:component ${c.byNpm} ${c.name} ${c.git}`, (err) => _c(err));
+      mem.push((next) => {
+        console.log('Seeding component:', c.name, c.git);
+        cProc.exec(
+          `npm run register:component ${c.byNpm} ${c.name} ${c.git}`, 
+          (err, stdout, stderr) => {
+            console.log('Component seeding stdout, stderr:', stdout, stderr);
+            return next(err);
+          }
+        );
       });
       return mem;
     }, []);
-    async.parallel(promises, (err) => call(err));
+    async.series(promises, (err) => done(err));
   }
 ];
 
-async.parallel(tasks, (err, results) => {
-  if (err) process.exit(1);
+async.series(tasks, (errors, results) => {
+  if (errors) {
+    console.log('Failed to seed, errors:', errors);
+    process.exit(1);
+  }
   else process.exit(0);
 });
