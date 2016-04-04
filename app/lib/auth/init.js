@@ -1,39 +1,28 @@
 'use strict';
 
-let passport = require('passport'),
-    LocalStrategy = require('passport-local').Strategy,
-    expressSession = require('express-session'),
-    Users = require('../../models').User;
+let passport        = require('passport');
+let LocalStrategy   = require('passport-local').Strategy;
+let expressSession  = require('express-session');
+let Users           = require('../../models').User;
 
 passport.use(new LocalStrategy({
     usernameField: 'email'
-  },
-  (email, password, done) => {
+  }, (email, password, done) => {
     Users.find({
       where: {
         email: email,
         password: password
       }
-    }).then(user => {
-      return done(null, user);
-    }).catch(err => {
-      return done(err);
-    });
+    }).then(user => done(null, user)).catch(err => done(err));
   }
 ));
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
+passport.serializeUser((user, done) => done(null, user));
 
-passport.deserializeUser((id, done) => {
-  Users.findById(id)
-    .then(user => {
-      done(null, user);
-    })
-    .catch(err => {
-      done(err);
-    });
+passport.deserializeUser((_user, done) => {
+  Users.findById(_user.id)
+    .then(user => done(null, user))
+    .catch(err => done(err));
 });
 
 module.exports = app => {

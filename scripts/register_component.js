@@ -131,19 +131,24 @@ function createComponent(manifest, done) {
   }).then((component) => {
     console.log('Component created.');
     findOrCreateAllTypes(allUsedTypes, (err, types) => {
-      if (err) { return done(err); }
+      if (err) { 
+        console.error(`Error while creating data types [${err}].`);
+        return done(err); 
+      }
 
       let fieldsPromises = manifest.fields.reduce((prevVal, f) => {
-        let fieldTypes = types.filter((t) => {
-          return f.types.indexOf(t.name) !== -1;
-        });
+        let fieldTypes = types.filter((t) => (f.types.indexOf(t.name) !== -1));
         prevVal.push(next => {
           let newCF = models.ComponentField.create({
             name: f.name
-          }).then((cf) => {
+          }).then((field) => {
             async.parallel([
-              (_c) => cf.setComponent(component).then(() => _c()).catch(err => _c(err)),
-              (_c) => cf.setDataTypes(fieldTypes).then(() => _c()).catch(err => _c(err))
+              (_c) => field.setComponent(component)
+                .then(() => _c())
+                .catch(err => _c(err)),
+              (_c) => field.setDataTypes(fieldTypes)
+                .then(() => _c())
+                .catch(err => _c(err))
             ], (err, results) => next(err));
           })
           .catch(err => next(err));
@@ -151,44 +156,26 @@ function createComponent(manifest, done) {
         return prevVal;
       }, []);
       console.log('Creating component fields...');
-      async.parallel(fieldsPromises, (err, results) => {
-        if (err) {
-          return done(err);
-        } else {
-          return done(null, results);
-        }
-      })
+      async.parallel(fieldsPromises, done);
     });
-  }).catch(err => done(err));
+  }).catch(done);
 }
 
 function findOrCreateAllTypes(types, done) {
   let promises = [];
   if (!CREATING_DATA_TYPES) {
-    models.DataType.findAll({
-      where: {
-        name: {
-          $in: types
-        }
-      }
-    }).then((results) => done(null, results))
-      .catch(err => done(err));
-
+    models.DataType.findAll({ where: { name: { $in: types } } })
+      .then((results) => done(null, results))
+      .catch(done);
     return;
   }
 
   types.forEach((typeName) => {
     promises.push(next => {
-        models.DataType.findOrCreate({
-          where: {
-            name: typeName
-          }
-        }).then((dataType) => next(null, dataType[0]))
-        .catch(err => next(err))
+        models.DataType.findOrCreate({ where: { name: typeName } })
+          .then((dataType) => next(null, dataType[0]))
+          .catch(next);
     });
   });
-  async.parallel(promises, (err, results) => {
-    console.log('findOrCreateAllTypes | err:', err);
-    done(err, results);
-  });
+  async.parallel(promises, done);
 }

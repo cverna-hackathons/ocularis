@@ -6,9 +6,7 @@ let isAuth = require('../lib/auth/is-auth');
 let route = require('express').Router();
 let passport = require('passport');
 
-route.get('/', (req, res) => {
-  res.render('main');
-});
+route.get('/', isAuth, (req, res) => res.render('main'));
 
 route.get('/login', (req, res) => {
   res.render('login', {
@@ -31,7 +29,7 @@ route.get('/vr', (req, res) => {
 // Load structure for the user, WIP
 route.get('/load_settings', (req, res) => {
   settingsLoader.getSettings(null, (err, settings) => {
-    res.send({ settings: settings });
+    res.send({ settings });
   });
 });
 

@@ -11,7 +11,7 @@ let USERS = [{
 }, {
   username: 'Pelo',
   email: 'pelo@ocularis.com',
-  passowrd: 'pelo'
+  password: 'pelo'
 }];
 
 let COMPONENTS = [
@@ -43,7 +43,7 @@ let tasks = [
       });
       return mem;
     }, []);
-    async.parallel(promises, (err) => done(err));
+    async.series(promises, (err) => done(err));
   },
   //seed all components
   (done) => {

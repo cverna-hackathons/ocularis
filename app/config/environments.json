@@ -3,6 +3,7 @@
     "app": {
       "name": "ocularis"
     },
+    "sessionSecret": "jXKLN3k2Qcxa9cFmwe2beXkyw5Z3R3szgfaTqZBC2DffEy",
     "port": 4000,
     "db": "postgres://postgres:suwreB98@localhost/ocularis-development"
   },
@@ -12,6 +13,7 @@
       "name": "ocularis"
     },
     "port": 3000,
+    "sessionSecret": "jXKLN3k2Qcxa9cFmwe2beXkyw5Z3R3szgfaTqZBC2DffEy",
     "db": "postgres://localhost/ocularis-test"
   },
 
@@ -20,6 +22,7 @@
       "name": "ocularis"
     },
     "port": 3000,
+    "sessionSecret": "jXKLN3k2Qcxa9cFmwe2beXkyw5Z3R3szgfaTqZBC2DffEy",
     "db": "postgres://localhost/ocularis-production"
   }
 }
