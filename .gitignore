@@ -7,3 +7,4 @@ public/js/vr.js
 public/sandbox/*.js
 app/lib/sandbox/npm-debug.log
 tmp/*.js
+npm-debug.log
