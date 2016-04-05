@@ -65,6 +65,17 @@ export default function(engine) {
   function checkForUpdates() {
     selectComponentInView();
     updateAnimations();
+    updateComponents();
+  }
+
+  /**
+   * Called each frame from outside to check and mark updates to components
+   * @return {void}
+   */
+  function updateComponents() {
+    window.ocularisComponents.forEach(instance => {
+      if (typeof(instance.update) === 'function') instance.update();
+    });
   }
 
   /**
@@ -124,10 +135,6 @@ export default function(engine) {
   }
 
   function setFitting(instance) {
-    // if (_fitting) {
-    //   _scene.remove(_fitting.object);
-    // }
-
     _camera.updateMatrixWorld();
     _fitting = Plane(instance.frame, _camera);
     // Update transform matrix according to world, 
@@ -147,7 +154,7 @@ export default function(engine) {
     console.log('shiftVector, _camera.rotation, _cameraLookAt:', shiftVector, _camera.rotation, _cameraLookAt);
     console.log('_fitting:', _fitting);
 
-    setTimeout(() => _scene.remove(fittingPlane), 3000);
+    setTimeout(() => _scene.remove(fittingPlane), 10);
   }
 
   /**
@@ -196,7 +203,13 @@ export default function(engine) {
         drawableId: 'leftSide',
         content: 'images/sample_image_for_leftside.jpg',
         type: 'image'
-      },
+      }
+      // },
+      // {
+      //   drawableId: 'rightSide',
+      //   content: 'Webcam video for webcam',
+      //   type: 'video'
+      // }
     ]);
   }
 
