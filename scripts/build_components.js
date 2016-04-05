@@ -4,7 +4,7 @@ let sandbox = require('../app/lib/sandbox/lib')();
 let async = require('async');
 // TODO: Replace to read all registered/approved components
 
-async.eachSeries(['ocularis-cube', 'ocularis-pane'], (cName, next) => {
+async.eachSeries(['ocularis-pane'], (cName, next) => {
   sandbox.createComponentFile({ 
     name: cName 
   }, next);

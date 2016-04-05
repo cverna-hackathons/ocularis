@@ -25,16 +25,6 @@ module.exports = (function() {
           }
         },
         {
-          name: 'ocularis-cube',
-          id: 'ld-ocularis-cube',
-          provider: {
-            type: 'feed',
-            name: 'LD feed',
-            description: 'Provides LD feed browsing.',
-            id: 'ld'
-          }
-        },
-        {
           name: 'ocularis-pane',
           id: 'hn-ocularis-pane',
           provider: {

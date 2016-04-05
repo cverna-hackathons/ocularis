@@ -295,10 +295,9 @@ function Director(engine) {
   let _scene, _camera, _arrow, _raycaster, _events, _settings, _fitting, _debug;
   // Create a shared object to assign instance in view
   let _inView = {};
-
   let _engine = engine;
-
   let _previewMode = false;
+  let _VRDevicesPresent = false;
 
   const activationID    = 'componentActivation';
 
@@ -366,6 +365,9 @@ function Director(engine) {
         _settings.general.activationKey : 'spacebar'
       ) , toggleComponentActivation, activationID
     );
+    _engine.VRDevicePresent((present) => { 
+      _VRDevicesPresent = present;
+    });
   }
 
   /**
@@ -375,7 +377,8 @@ function Director(engine) {
    */
   function toggleComponentActivation() {
     // XXX: just changing rotation for testing
-    if (!_engine.VRDevicePresent()) {
+    if (!_VRDevicesPresent) {
+      console.log('vrdevice not present')
       _camera.rotation.z += ((Math.PI / 180) * 2);
       _camera.rotation.y += ((Math.PI / 180) * 2);
       _camera.position.x -= .1;
@@ -471,23 +474,20 @@ function Director(engine) {
     // Render it to drawables
     instance.draw([
       {
-        drawableId: 'main',
-        content: 'Go is a fascinating strategy board game that\'s been popular for at least 2,500 years, and probably more. Its simple rules and deep strategies have intrigued everyone from emperors to peasants for hundreds of generations. And they still do today. The game Go has fascinated people for thousands of years.',
-        type: 'text',
-        bgColor: 'rgba(0, 0, 0, 0.3)',
-        textColor: 'rgba(255, 255, 255, 0.7)'
-      },
-      {
         drawableId: 'leftSide',
         content: 'images/sample_image_for_leftside.jpg',
         type: 'image'
+      },
+      {
+        drawableId: 'main',
+        content: 'webcam',
+        type: 'video'
+      },
+      {
+        drawableId: 'rightSide',
+        content: 'Webcam video for webcam is loaded to the left.',
+        type: 'text'
       }
-      // },
-      // {
-      //   drawableId: 'rightSide',
-      //   content: 'Webcam video for webcam',
-      //   type: 'video'
-      // }
     ]);
   }
 
@@ -917,17 +917,8 @@ function Engine() {
     }
   }
 
-  function VRDevicePresent() {
-    let isPresent = false;
-    navigator.getVRDevices().then(function(devices) {
-      for (var i = 0; i < devices.length; ++i) {
-        if (devices[i] instanceof HMDVRDevice) {
-          isPresent = true;
-          break;
-        }
-      }
-    });
-    return isPresent;
+  function VRDevicePresent(done) {
+    navigator.getVRDevices().then((devices) => done(devices.length > 0));
   }
 
   function update() {

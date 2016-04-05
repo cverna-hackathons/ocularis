@@ -36,7 +36,10 @@ function sandbox() {
     async.series([
       // Build the latest updates
       next => cProc.exec(buildCommand, err => next(err))
-    ], (errs) => done(errs));
+    ], (errs) => {
+      console.log('rebuildComponentPackage | errs:', errs);
+      return done(errs);
+    });
     // Build the package if it requires building
   }
 
