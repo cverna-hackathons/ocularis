@@ -10,6 +10,9 @@ module.exports = (function() {
     var DEFAULTS = {
       name: 'Default world',
       debug: false,
+      background: {
+        color: '#eee'
+      },
       ui: {
         activationKey: 'spacebar'
       },

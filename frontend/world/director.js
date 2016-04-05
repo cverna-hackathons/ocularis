@@ -284,7 +284,9 @@ export default function(engine) {
           component.idx = componentIdx;
           addComponent(component);
         });
-        Background(null, (bg) => _scene.add(bg));
+        Background(settings.background, (bg) => {
+          if (bg) _scene.add(bg);
+        });
         // _scene.fog = new THREE.FogExp2(0xeeeeee, 0.05);
         if (done) return done();
       } else console.warn('Unable to load settings! [Error:', errs, ']');

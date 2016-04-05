@@ -19,8 +19,18 @@ export default function (options, done) {
   });
   let backdrop    = new THREE.Mesh(sphere, material);  
 
-  texLoader.load(options.bgPath, onTextureLoaded);
-
+  if (options.bgPath) {
+    texLoader.load(options.bgPath, onTextureLoaded);
+  } else if (options.color) {
+    material.color = '#eeeeee';
+    return done(backdrop);
+  }
+  
+  /**
+   * Once texture for background is loaded, assign it as mapping to the material
+   * @param  {THREE.Texture} texture - Texture loaded
+   * @return {Function execution} done - callback executed
+   */
   function onTextureLoaded(texture) {
     console.log('onTextureLoaded | texture:', texture);
     material.map = texture;
