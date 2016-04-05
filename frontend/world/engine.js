@@ -63,6 +63,19 @@ export default function() {
     }
   }
 
+  function VRDevicePresent() {
+    let isPresent = false;
+    navigator.getVRDevices().then(function(devices) {
+      for (var i = 0; i < devices.length; ++i) {
+        if (devices[i] instanceof HMDVRDevice) {
+          isPresent = true;
+          break;
+        }
+      }
+    });
+    return isPresent;
+  }
+
   function update() {
     director.checkForUpdates();
   }
@@ -111,6 +124,7 @@ export default function() {
     disableVR,
     update,
     getVREnabled,
+    VRDevicePresent,
     getFrameUpdate,
     setFrameUpdate,
     setCamera,

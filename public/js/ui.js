@@ -356,9 +356,11 @@ function Director(engine) {
    */
   function toggleComponentActivation() {
     // XXX: just changing rotation for testing
-    _camera.rotation.z += Math.PI / 180 * 2;
-    _camera.rotation.y += Math.PI / 180 * 2;
-    _camera.position.x -= .1;
+    if (!_engine.VRDevicePresent()) {
+      _camera.rotation.z += Math.PI / 180 * 2;
+      _camera.rotation.y += Math.PI / 180 * 2;
+      _camera.position.x -= .1;
+    }
 
     var instanceInView = _inView.instance;
 

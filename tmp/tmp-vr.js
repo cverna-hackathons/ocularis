@@ -375,9 +375,11 @@ function Director(engine) {
    */
   function toggleComponentActivation() {
     // XXX: just changing rotation for testing
-    _camera.rotation.z += ((Math.PI / 180) * 2);
-    _camera.rotation.y += ((Math.PI / 180) * 2);
-    _camera.position.x -= .1;
+    if (!_engine.VRDevicePresent()) {
+      _camera.rotation.z += ((Math.PI / 180) * 2);
+      _camera.rotation.y += ((Math.PI / 180) * 2);
+      _camera.position.x -= .1;
+    }
 
     let instanceInView = _inView.instance;
 
@@ -915,6 +917,19 @@ function Engine() {
     }
   }
 
+  function VRDevicePresent() {
+    let isPresent = false;
+    navigator.getVRDevices().then(function(devices) {
+      for (var i = 0; i < devices.length; ++i) {
+        if (devices[i] instanceof HMDVRDevice) {
+          isPresent = true;
+          break;
+        }
+      }
+    });
+    return isPresent;
+  }
+
   function update() {
     director.checkForUpdates();
   }
@@ -963,6 +978,7 @@ function Engine() {
     disableVR,
     update,
     getVREnabled,
+    VRDevicePresent,
     getFrameUpdate,
     setFrameUpdate,
     setCamera,
