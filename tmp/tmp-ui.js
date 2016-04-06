@@ -2,7 +2,7 @@ function Light() {
   return new THREE.AmbientLight(0xeeeeee);
 }
 
-function Background (options, done) {
+function Background (options, engine, done) {
 
   options = options || { 
     bgPath: 'images/backdrop_desert.jpg',
@@ -12,27 +12,33 @@ function Background (options, done) {
     resolution: 20 
   };
 
-  let texLoader   = new THREE.TextureLoader();
-  let sphere      = new THREE.SphereGeometry(
-    options.radius, options.resolution, options.resolution
-    // , (Math.PI + options.hCutOff), (Math.PI - (2 * options.hCutOff)), options.vCutOff,
-    //   (Math.PI - (2 * options.vCutOff))
-  );
-  let material    = new THREE.MeshBasicMaterial({
-    side: THREE.BackSide
-  });
-  let backdrop    = new THREE.Mesh(sphere, material);  
-
-  texLoader.load(options.bgPath, onTextureLoaded);
-
-  function onTextureLoaded(texture) {
-    console.log('onTextureLoaded | texture:', texture);
-    material.map = texture;
-    texture.needsUpdate = true;
-
-    return done(backdrop);
+  if (options.bgPath) {
+    loadEquirectangularTexture(done);
+  } else if (options.color) {
+    engine.getRenderer().setClearColor(options.color, 1);
+    return done();
   }
+  
+  /**
+   * Once texture for background is loaded, assign it as mapping to the material
+   * @param  {THREE.Texture} texture - Texture loaded
+   * @return {Function execution} done - callback executed
+   */
 
+  function loadEquirectangularTexture(next) {
+    let texLoader   = new THREE.TextureLoader();
+    let sphere      = new THREE.SphereGeometry(
+      options.radius, options.resolution, options.resolution
+    );
+    let material    = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
+    let backdrop    = new THREE.Mesh(sphere, material); 
+
+    texLoader.load(options.bgPath, (texture) => {
+      material.map = texture;
+      texture.needsUpdate = true;
+      return next(backdrop);
+    });    
+  }
   
 }
 
@@ -545,7 +551,7 @@ function Director(engine) {
 
   /**
    * Loads settings and component definitions, then adds the components to scene
-   * @param  {function} Callback when all component additions were initiated
+   * @param  {Function} done - when all component additions were initiated
    * @return {void}
    */
   function addComponents(done) {
@@ -556,9 +562,10 @@ function Director(engine) {
           component.idx = componentIdx;
           addComponent(component);
         });
-        Background(null, (bg) => _scene.add(bg));
-        // _scene.fog = new THREE.FogExp2(0xeeeeee, 0.05);
-        if (done) return done();
+        Background(settings.background, _engine, (bg) => {
+          if (bg) _scene.add(bg);
+          if (done) return done();
+        });
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });
   }

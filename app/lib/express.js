@@ -10,7 +10,7 @@ let compress        = require('compression');
 let methodOverride  = require('method-override');
 let exphbs          = require('express-handlebars');
 let session         = require('express-session');
-// let pgSession       = require('connect-pg-simple')(session);
+let pgSession       = require('connect-pg-simple')(session);
 let dbConfig        = require('../config/database');
 let pg              = require('pg');
 let models          = require('../models');
@@ -28,24 +28,22 @@ module.exports = function(app, config) {
   }));
   app.set('views', config.root + '/app/views');
   app.set('view engine', 'handlebars');
-
-  // app.use(favicon(config.root + '/public/img/favicon.ico'));
   app.use(logger('dev', {
     format: 'dev',
     skip: (req, res) => (res.statusCode === 304),
   }));
 
-  // app.use(session({
-  //   store: new pgSession({
-  //     pg : pg,
-  //     conString : common.pgConnURI(dbConfig[env]),
-  //     tableName : 'UserSessions'
-  //   }),
-  //   secret: config.sessionSecret,
-  //   resave: false,
-  //   saveUninitialized: false,
-  //   cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days 
-  // }));
+  app.use(session({
+    store: new pgSession({
+      pg,
+      conString : common.pgConnURI(dbConfig[env]),
+      tableName : 'UserSessions'
+    }),
+    secret: config.sessionSecret,
+    resave: true,
+    saveUninitialized: false,
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days 
+  }));
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({
     extended: true

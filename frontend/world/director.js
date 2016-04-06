@@ -273,7 +273,7 @@ export default function(engine) {
 
   /**
    * Loads settings and component definitions, then adds the components to scene
-   * @param  {function} Callback when all component additions were initiated
+   * @param  {Function} done - when all component additions were initiated
    * @return {void}
    */
   function addComponents(done) {
@@ -284,11 +284,10 @@ export default function(engine) {
           component.idx = componentIdx;
           addComponent(component);
         });
-        Background(settings.background, (bg) => {
+        Background(settings.background, _engine, (bg) => {
           if (bg) _scene.add(bg);
+          if (done) return done();
         });
-        // _scene.fog = new THREE.FogExp2(0xeeeeee, 0.05);
-        if (done) return done();
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });
   }

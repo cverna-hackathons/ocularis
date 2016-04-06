@@ -26,11 +26,11 @@ passport.deserializeUser((_user, done) => {
 });
 
 module.exports = app => {
-  app.use(expressSession({
-    secret: 'OcularisRules',
-    resave: true,
-    saveUninitialized: false
-  }));
+  // app.use(expressSession({
+  //   secret: 'OcularisRules',
+  //   resave: true,
+  //   saveUninitialized: false
+  // }));
   app.use(passport.initialize());
   app.use(passport.session());
 }

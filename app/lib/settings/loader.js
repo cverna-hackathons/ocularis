@@ -11,7 +11,7 @@ module.exports = (function() {
       name: 'Default world',
       debug: false,
       background: {
-        color: '#eee'
+        color: '#222222'
       },
       ui: {
         activationKey: 'spacebar'

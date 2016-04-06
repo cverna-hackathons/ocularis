@@ -8,7 +8,7 @@ function Light() {
   return new THREE.AmbientLight(0xeeeeee);
 }
 
-function Background(options, done) {
+function Background(options, engine, done) {
 
   options = options || {
     bgPath: 'images/backdrop_desert.jpg',
@@ -18,24 +18,30 @@ function Background(options, done) {
     resolution: 20
   };
 
-  var texLoader = new THREE.TextureLoader();
-  var sphere = new THREE.SphereGeometry(options.radius, options.resolution, options.resolution
-  // , (Math.PI + options.hCutOff), (Math.PI - (2 * options.hCutOff)), options.vCutOff,
-  //   (Math.PI - (2 * options.vCutOff))
-  );
-  var material = new THREE.MeshBasicMaterial({
-    side: THREE.BackSide
-  });
-  var backdrop = new THREE.Mesh(sphere, material);
+  if (options.bgPath) {
+    loadEquirectangularTexture(done);
+  } else if (options.color) {
+    engine.getRenderer().setClearColor(options.color, 1);
+    return done();
+  }
 
-  texLoader.load(options.bgPath, onTextureLoaded);
+  /**
+   * Once texture for background is loaded, assign it as mapping to the material
+   * @param  {THREE.Texture} texture - Texture loaded
+   * @return {Function execution} done - callback executed
+   */
 
-  function onTextureLoaded(texture) {
-    console.log('onTextureLoaded | texture:', texture);
-    material.map = texture;
-    texture.needsUpdate = true;
+  function loadEquirectangularTexture(next) {
+    var texLoader = new THREE.TextureLoader();
+    var sphere = new THREE.SphereGeometry(options.radius, options.resolution, options.resolution);
+    var material = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
+    var backdrop = new THREE.Mesh(sphere, material);
 
-    return done(backdrop);
+    texLoader.load(options.bgPath, function (texture) {
+      material.map = texture;
+      texture.needsUpdate = true;
+      return next(backdrop);
+    });
   }
 }
 
@@ -525,7 +531,7 @@ function Director(engine) {
 
   /**
    * Loads settings and component definitions, then adds the components to scene
-   * @param  {function} Callback when all component additions were initiated
+   * @param  {Function} done - when all component additions were initiated
    * @return {void}
    */
   function addComponents(done) {
@@ -536,11 +542,10 @@ function Director(engine) {
           component.idx = componentIdx;
           addComponent(component);
         });
-        Background(null, function (bg) {
-          return _scene.add(bg);
+        Background(settings.background, _engine, function (bg) {
+          if (bg) _scene.add(bg);
+          if (done) return done();
         });
-        // _scene.fog = new THREE.FogExp2(0xeeeeee, 0.05);
-        if (done) return done();
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });
   }
@@ -670,7 +675,7 @@ function Director(engine) {
 }
 
 function Renderer() {
-  var renderer = new THREE.WebGLRenderer();
+  var renderer = new THREE.WebGLRenderer({ alpha: true });
   // renderer.setPixelRatio(window.devicePixelRatio);
 
   return renderer;
