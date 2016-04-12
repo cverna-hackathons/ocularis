@@ -28,9 +28,8 @@ function Background(options, engine, done) {
   /**
    * Once texture for background is loaded, assign it as mapping to the material
    * @param  {THREE.Texture} texture - Texture loaded
-   * @return {Function execution} done - callback executed
+   * @return {Function execution} next - callback executed
    */
-
   function loadEquirectangularTexture(next) {
     var texLoader = new THREE.TextureLoader();
     var sphere = new THREE.SphereGeometry(options.radius, options.resolution, options.resolution);

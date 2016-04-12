@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = (function() {
   
   const sandbox = require('../sandbox/lib')();
@@ -7,7 +9,7 @@ module.exports = (function() {
   }
 
   function defaultSettings() {
-    var DEFAULTS = {
+    let DEFAULTS = {
       name: 'Default world',
       debug: false,
       background: {
@@ -47,6 +49,6 @@ module.exports = (function() {
   }
 
   return {
-    getSettings: getSettings
+    getSettings
   }
 }) ();

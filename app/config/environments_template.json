@@ -4,25 +4,20 @@
       "name": "ocularis"
     },
     "port": 3000,
-    "sessionSecret": "xxx",
-    "db": "postgres://postgres:XXY@localhost/ocularis-development"
+    "sessionSecret": "xxx"
   },
-
   "test": {
     "app": {
       "name": "ocularis"
     },
     "port": 3000,
-    "sessionSecret": "xxx",
-    "db": "postgres://localhost/ocularis-test"
+    "sessionSecret": "xxx"
   },
-
   "production": {
     "app": {
       "name": "ocularis"
     },
     "port": 3000,
-    "sessionSecret": "xxx",
-    "db": "postgres://localhost/ocularis-production"
+    "sessionSecret": "xxx"
   }
 }

@@ -2,7 +2,6 @@
 
 let express         = require('express');
 let glob            = require('glob');
-let favicon         = require('serve-favicon');
 let logger          = require('morgan');
 let cookieParser    = require('cookie-parser');
 let bodyParser      = require('body-parser');
@@ -14,7 +13,6 @@ let pgSession       = require('connect-pg-simple')(session);
 let dbConfig        = require('../config/database');
 let pg              = require('pg');
 let models          = require('../models');
-let common          = require('./common');
 
 module.exports = function(app, config) {
   let env = process.env.NODE_ENV || 'development';
@@ -32,11 +30,10 @@ module.exports = function(app, config) {
     format: 'dev',
     skip: (req, res) => (res.statusCode === 304),
   }));
-
   app.use(session({
     store: new pgSession({
       pg,
-      conString : common.pgConnURI(dbConfig[env]),
+      conString : dbConfig[env].uri,
       tableName : 'UserSessions'
     }),
     secret: config.sessionSecret,
@@ -65,7 +62,7 @@ module.exports = function(app, config) {
     next(err);
   });
 
-  if(app.get('env') === 'development'){
+  if (app.get('env') === 'development') {
     app.use(function (err, req, res, next) {
       res.status(err.status || 500);
       res.render('error', {
