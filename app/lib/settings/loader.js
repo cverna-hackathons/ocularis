@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = (function() {
+module.exports = (() => {
   
   const sandbox = require('../sandbox/lib')();
 
@@ -28,8 +28,7 @@ module.exports = (function() {
             description: 'Provides twitter feed browsing.',
             id: 'twitter'
           }
-        },
-        {
+        }, {
           name: 'ocularis-pane',
           id: 'hn-ocularis-pane',
           provider: {

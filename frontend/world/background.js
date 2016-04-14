@@ -1,3 +1,4 @@
+// Sets the scene background
 export default function (options, engine, done) {
 
   options = options || { 
@@ -22,17 +23,17 @@ export default function (options, engine, done) {
    */
   function loadEquirectangularTexture(next) {
     let texLoader   = new THREE.TextureLoader();
+    let material    = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
     let sphere      = new THREE.SphereGeometry(
       options.radius, options.resolution, options.resolution
     );
-    let material    = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
     let backdrop    = new THREE.Mesh(sphere, material); 
 
     texLoader.load(options.bgPath, (texture) => {
       material.map = texture;
       texture.needsUpdate = true;
       return next(backdrop);
-    });    
+    });
   }
   
 }

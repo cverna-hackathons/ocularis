@@ -22,6 +22,14 @@ export const componentArrangementMap = [
   }
 ];
 
+/** Returns distance between two objects
+ * @param  {[type]} objectOne [THREE.js object]
+ * @param  {[type]} objectTwo [THREE.js object]
+ * @return {Float} distance - between the two provided objects
+ */
+export function distanceBetween(objectOne, objectTwo) {
+  return objectOne.position.distanceTo(objectTwo.position);
+}
 
 /**
  * Get the standard camera vector looking down the z axis

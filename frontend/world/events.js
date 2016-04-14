@@ -37,17 +37,25 @@ export default function() {
   }
 
   function trackKeys (event) {
-    triggerKeyEvent(getEventKeyDirection(event, 'keydown'));
+    triggerEvent(getEventKeyDirection(event, 'keydown'), event);
   }
 
-  function setTriggers () {
+  function trackLeapEvents(event, options) {
+    console.log('trackLeapEvents | event, options:', event, options);
+    triggerEvent(options.name, options);
+  }
+
+  function setKeyTriggers () {
     $('body').on('keydown', trackKeys);
   }
 
-  function triggerKeyEvent(key) {
-    if (listeners[key]) listeners[key].forEach(obj => {
-      return obj.callback()
-    });
+  function setLeapTriggers () {
+    $('body').on('leapEvent', trackLeapEvents);
+  }
+
+
+  function triggerEvent(key, eventDetails) {
+    if (listeners[key]) listeners[key].forEach(obj => obj.callback(eventDetails));
   }
 
   function addEventListener(key, done, id) {
@@ -67,11 +75,15 @@ export default function() {
     }
   }
 
-  setTriggers();
+  function init() {
+    setKeyTriggers();
+    setLeapTriggers();
+  }
 
   return {
     getListeners: () => listeners,
     addEventListener,
-    removeEventListener
+    removeEventListener,
+    init
   };
 }

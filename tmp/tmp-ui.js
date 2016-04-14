@@ -2,6 +2,7 @@ function Light() {
   return new THREE.AmbientLight(0xeeeeee);
 }
 
+// Sets the scene background
 function Background (options, engine, done) {
 
   options = options || { 
@@ -26,17 +27,17 @@ function Background (options, engine, done) {
    */
   function loadEquirectangularTexture(next) {
     let texLoader   = new THREE.TextureLoader();
+    let material    = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
     let sphere      = new THREE.SphereGeometry(
       options.radius, options.resolution, options.resolution
     );
-    let material    = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
     let backdrop    = new THREE.Mesh(sphere, material); 
 
     texLoader.load(options.bgPath, (texture) => {
       material.map = texture;
       texture.needsUpdate = true;
       return next(backdrop);
-    });    
+    });
   }
   
 }
@@ -110,7 +111,6 @@ const componentArrangementMap = [
     rotation: new THREE.Vector3(0, angleShift, 0) 
   }
 ];
-
 
 /**
  * Returns object containing information about the distance
@@ -314,9 +314,9 @@ function Director(engine) {
     // Add our ambient light to scene    
     _scene.add(Light());
     // Empty component container arrays
-    initializeComponentContainers();
+    initComponentContainers();
     // Add components to scene
-    addComponents(initializeActivationEvent);
+    addComponents(initEvents);
     // Return for chaining
     return this;
   }
@@ -358,7 +358,7 @@ function Director(engine) {
    * Will bind key down on spacebar to activating the component in view
    * @return {void}
    */
-  function initializeActivationEvent() {
+  function initEvents() {
     _debug  = _settings.debug;
     _events = _engine.getEvents();
     _events.addEventListener(
@@ -406,7 +406,6 @@ function Director(engine) {
         });
       }
       else if (instanceInView._activated) {
-
         instanceInView._noEvents = true;
         deactivateComponent(instanceInView, () => {
           instanceInView._noEvents = false;
@@ -564,7 +563,7 @@ function Director(engine) {
         Background(settings.background, _engine, (bg) => {
           if (bg) _scene.add(bg);
           if (done) return done();
-        });
+        }); 
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });
   }
@@ -573,7 +572,7 @@ function Director(engine) {
    * Called on start to empty containers for component constructors and instances
    * @return {void}
    */
-  function initializeComponentContainers() {
+  function initComponentContainers() {
     initComponents();
     initComponentConstructors();
   }

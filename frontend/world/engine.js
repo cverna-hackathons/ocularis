@@ -4,9 +4,10 @@ import Renderer from './renderer';
 import Draw from './draw';
 import View from './view';
 import Events from './events';
+import LeapController from './leap';
 import VRHandlers_ from './vr-handlers';
 
-export default function() {
+export default function () {
 
   var context = this;
 
@@ -30,12 +31,17 @@ export default function() {
 
   var director = null;
 
+  var leap = null;
 
   function init() {
     view = View(this);
     events = Events();
     director = Director(this);
+    leap = LeapController(this);
+
+    leap.init();
     director.init(scene);
+    events.init();
 
     return this;
   }

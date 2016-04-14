@@ -4,6 +4,7 @@ function Light() {
   return new THREE.AmbientLight(0xeeeeee);
 }
 
+// Sets the scene background
 function Background(options, engine, done) {
 
   options = options || {
@@ -28,8 +29,8 @@ function Background(options, engine, done) {
    */
   function loadEquirectangularTexture(next) {
     var texLoader = new THREE.TextureLoader();
-    var sphere = new THREE.SphereGeometry(options.radius, options.resolution, options.resolution);
     var material = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
+    var sphere = new THREE.SphereGeometry(options.radius, options.resolution, options.resolution);
     var backdrop = new THREE.Mesh(sphere, material);
 
     texLoader.load(options.bgPath, function (texture) {
@@ -303,9 +304,9 @@ function Director(engine) {
     // Add our ambient light to scene   
     _scene.add(Light());
     // Empty component container arrays
-    initializeComponentContainers();
+    initComponentContainers();
     // Add components to scene
-    addComponents(initializeActivationEvent);
+    addComponents(initEvents);
     // Return for chaining
     return this;
   }
@@ -347,7 +348,7 @@ function Director(engine) {
    * Will bind key down on spacebar to activating the component in view
    * @return {void}
    */
-  function initializeActivationEvent() {
+  function initEvents() {
     _debug = _settings.debug;
     _events = _engine.getEvents();
     _events.addEventListener(_settings && _settings.general && _settings.general.activationKey ? _settings.general.activationKey : 'spacebar', toggleComponentActivation, activationID);
@@ -390,7 +391,6 @@ function Director(engine) {
           }
         });
       } else if (instanceInView._activated) {
-
         instanceInView._noEvents = true;
         deactivateComponent(instanceInView, function () {
           instanceInView._noEvents = false;
@@ -549,7 +549,7 @@ function Director(engine) {
    * Called on start to empty containers for component constructors and instances
    * @return {void}
    */
-  function initializeComponentContainers() {
+  function initComponentContainers() {
     initComponents();
     initComponentConstructors();
   }

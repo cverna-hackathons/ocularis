@@ -37,9 +37,9 @@ export default function(engine) {
     // Add our ambient light to scene    
     _scene.add(Light());
     // Empty component container arrays
-    initializeComponentContainers();
+    initComponentContainers();
     // Add components to scene
-    addComponents(initializeActivationEvent);
+    addComponents(initEvents);
     // Return for chaining
     return this;
   }
@@ -81,7 +81,7 @@ export default function(engine) {
    * Will bind key down on spacebar to activating the component in view
    * @return {void}
    */
-  function initializeActivationEvent() {
+  function initEvents() {
     _debug  = _settings.debug;
     _events = _engine.getEvents();
     _events.addEventListener(
@@ -129,7 +129,6 @@ export default function(engine) {
         });
       }
       else if (instanceInView._activated) {
-
         instanceInView._noEvents = true;
         deactivateComponent(instanceInView, () => {
           instanceInView._noEvents = false;
@@ -287,7 +286,7 @@ export default function(engine) {
         Background(settings.background, _engine, (bg) => {
           if (bg) _scene.add(bg);
           if (done) return done();
-        });
+        }); 
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });
   }
@@ -296,7 +295,7 @@ export default function(engine) {
    * Called on start to empty containers for component constructors and instances
    * @return {void}
    */
-  function initializeComponentContainers() {
+  function initComponentContainers() {
     initComponents();
     initComponentConstructors();
   }

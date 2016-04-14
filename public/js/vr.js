@@ -8,6 +8,7 @@ function Light() {
   return new THREE.AmbientLight(0xeeeeee);
 }
 
+// Sets the scene background
 function Background(options, engine, done) {
 
   options = options || {
@@ -32,8 +33,8 @@ function Background(options, engine, done) {
    */
   function loadEquirectangularTexture(next) {
     var texLoader = new THREE.TextureLoader();
-    var sphere = new THREE.SphereGeometry(options.radius, options.resolution, options.resolution);
     var material = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
+    var sphere = new THREE.SphereGeometry(options.radius, options.resolution, options.resolution);
     var backdrop = new THREE.Mesh(sphere, material);
 
     texLoader.load(options.bgPath, function (texture) {
@@ -102,6 +103,15 @@ var componentArrangementMap = [
   position: new THREE.Vector3(-xShift, 0, zShift),
   rotation: new THREE.Vector3(0, angleShift, 0)
 }];
+
+/** Returns distance between two objects
+ * @param  {[type]} objectOne [THREE.js object]
+ * @param  {[type]} objectTwo [THREE.js object]
+ * @return {Float} distance - between the two provided objects
+ */
+function distanceBetween(objectOne, objectTwo) {
+  return objectOne.position.distanceTo(objectTwo.position);
+}
 
 /**
  * Returns object containing information about the distance
@@ -307,9 +317,9 @@ function Director(engine) {
     // Add our ambient light to scene   
     _scene.add(Light());
     // Empty component container arrays
-    initializeComponentContainers();
+    initComponentContainers();
     // Add components to scene
-    addComponents(initializeActivationEvent);
+    addComponents(initEvents);
     // Return for chaining
     return this;
   }
@@ -351,7 +361,7 @@ function Director(engine) {
    * Will bind key down on spacebar to activating the component in view
    * @return {void}
    */
-  function initializeActivationEvent() {
+  function initEvents() {
     _debug = _settings.debug;
     _events = _engine.getEvents();
     _events.addEventListener(_settings && _settings.general && _settings.general.activationKey ? _settings.general.activationKey : 'spacebar', toggleComponentActivation, activationID);
@@ -394,7 +404,6 @@ function Director(engine) {
           }
         });
       } else if (instanceInView._activated) {
-
         instanceInView._noEvents = true;
         deactivateComponent(instanceInView, function () {
           instanceInView._noEvents = false;
@@ -553,7 +562,7 @@ function Director(engine) {
    * Called on start to empty containers for component constructors and instances
    * @return {void}
    */
-  function initializeComponentContainers() {
+  function initComponentContainers() {
     initComponents();
     initComponentConstructors();
   }
@@ -769,16 +778,25 @@ function Events() {
   }
 
   function trackKeys(event) {
-    triggerKeyEvent(getEventKeyDirection(event, 'keydown'));
+    triggerEvent(getEventKeyDirection(event, 'keydown'), event);
   }
 
-  function setTriggers() {
+  function trackLeapEvents(event, options) {
+    console.log('trackLeapEvents | event, options:', event, options);
+    triggerEvent(options.name, options);
+  }
+
+  function setKeyTriggers() {
     $('body').on('keydown', trackKeys);
   }
 
-  function triggerKeyEvent(key) {
+  function setLeapTriggers() {
+    $('body').on('leapEvent', trackLeapEvents);
+  }
+
+  function triggerEvent(key, eventDetails) {
     if (listeners[key]) listeners[key].forEach(function (obj) {
-      return obj.callback();
+      return obj.callback(eventDetails);
     });
   }
 
@@ -799,14 +817,124 @@ function Events() {
     }
   }
 
-  setTriggers();
+  function init() {
+    setKeyTriggers();
+    setLeapTriggers();
+  }
 
   return {
     getListeners: function getListeners() {
       return listeners;
     },
     addEventListener: addEventListener,
-    removeEventListener: removeEventListener
+    removeEventListener: removeEventListener,
+    init: init
+  };
+}
+
+function LeapController(_engine) {
+  // What distance is considered to be close between finger tips
+  // Used for pointer events
+  var tipVicinity = 0.05;
+  // Leap adds elements to scene within different scale factor, we will use this
+  // custom scale factor to divide the position vectors in order to place pointers
+  // to the scene properly
+  var scaleFactor = 700;
+  // Delay between registering the same leap event
+  var eventDelay = 500;
+  // Count each cycle in leap controller loop, useful for detecting or delaying
+  // changes in pointer events
+  var cycleCounter = 0;
+  var _scene = _engine.getScene();
+  // Initialize leap controller
+  var controller = new Leap.Controller();
+  // Finger name to index map
+  var fingerNameMap = ["thumb", "index", "middle", "ring", "pinky"];
+  // Pointers which we will track in the scene (representing fingertips)
+  var trackedPointers = {
+    leftThumb: { color: '#ff0000', idx: 0, object: null, hand: 'left' },
+    leftIndex: { color: '#00ff00', idx: 1, object: null, hand: 'left' },
+    rightThumb: { color: '#0000ff', idx: 0, object: null, hand: 'right' },
+    rightIndex: { color: '#0000ff', idx: 1, object: null, hand: 'right' }
+  };
+  // Events that we will track and trigger callbacks for if they are registered
+  var pointerEvents = {
+    // Event for pinching thumb and index fingers
+    leftPincer: {
+      registers: function registers() {
+        var thumb = trackedPointers.leftThumb.object;
+        var index = trackedPointers.leftIndex.object;
+
+        return thumb && index ? distanceBetween(thumb, index) < tipVicinity : false;
+      }
+    },
+    rightPincer: {
+      registers: function registers() {
+        var thumb = trackedPointers.rightThumb.object;
+        var index = trackedPointers.rightIndex.object;
+
+        return thumb && index ? distanceBetween(thumb, index) < tipVicinity : false;
+      }
+    }
+  };
+
+  // Initialize this controller
+  function init() {
+    // Check if we are in vr mode, and set the HMD tracking optimization for leap
+    _engine.VRDevicePresent(function (VRPresent) {
+      controller.setOptimizeHMD(VRPresent);
+      Leap.loop({ hand: registerHand });
+    });
+  }
+
+  function registerHand(hand) {
+    // Sanity check to see if we have the fingers and hand
+    if (hand.fingers && hand.fingers.length) {
+      _.each(trackedPointers, function (pointer, pointerName) {
+        if (hand.type === pointer.hand && hand.fingers[pointer.idx]) {
+          if (!pointer.object) addFingerPointer(pointer);
+          positionPointerToFinger(pointer, hand.fingers[pointer.idx]);
+        }
+      });
+      checkPointerEvents();
+    }
+  }
+
+  function checkPointerEvents() {
+    var nowInt = Date.now();
+
+    _.each(pointerEvents, function (event, name) {
+      if ((!event.lastRegistered || nowInt - event.lastRegistered > eventDelay) && event.registers()) {
+        console.log('registered | event name:', name);
+        event.lastRegistered = Date.now();
+        $('body').trigger('leapEvent', [{ name: name, event: event }]);
+      }
+    });
+  }
+
+  function addFingerPointer(pointer) {
+    pointer.object = new THREE.Mesh(new THREE.BoxGeometry(0.002, 0.002, 0.002), new THREE.MeshBasicMaterial({ color: pointer.color }));
+    _scene.add(pointer.object);
+  }
+
+  function positionPointerToFinger(pointer, finger) {
+    pointer.object.position.copy(new THREE.Vector3().fromArray(finger.tipPosition).divideScalar(scaleFactor));
+
+    pointer.object.position.y -= 0.4;
+    pointer.object.position.z -= 0.4;
+  }
+
+  function removeFingerPointers(removedHand) {
+    console.log('!hand removed');
+    _.each(trackedPointers, function (pointer, pointerName) {
+      if (pointer.object) _scene.remove(pointer.object);
+    });
+  }
+
+  return {
+    controller: controller,
+    pointerEvents: pointerEvents,
+    init: init
   };
 }
 
@@ -858,11 +986,17 @@ function Engine() {
 
   var director = null;
 
+  var leap = null;
+
   function init() {
     view = View(this);
     events = Events();
     director = Director(this);
+    leap = LeapController(this);
+
+    leap.init();
     director.init(scene);
+    events.init();
 
     return this;
   }

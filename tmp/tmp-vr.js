@@ -6,6 +6,7 @@ function Light() {
   return new THREE.AmbientLight(0xeeeeee);
 }
 
+// Sets the scene background
 function Background (options, engine, done) {
 
   options = options || { 
@@ -30,17 +31,17 @@ function Background (options, engine, done) {
    */
   function loadEquirectangularTexture(next) {
     let texLoader   = new THREE.TextureLoader();
+    let material    = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
     let sphere      = new THREE.SphereGeometry(
       options.radius, options.resolution, options.resolution
     );
-    let material    = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
     let backdrop    = new THREE.Mesh(sphere, material); 
 
     texLoader.load(options.bgPath, (texture) => {
       material.map = texture;
       texture.needsUpdate = true;
       return next(backdrop);
-    });    
+    });
   }
   
 }
@@ -115,6 +116,14 @@ const componentArrangementMap = [
   }
 ];
 
+/** Returns distance between two objects
+ * @param  {[type]} objectOne [THREE.js object]
+ * @param  {[type]} objectTwo [THREE.js object]
+ * @return {Float} distance - between the two provided objects
+ */
+function distanceBetween(objectOne, objectTwo) {
+  return objectOne.position.distanceTo(objectTwo.position);
+}
 
 /**
  * Returns object containing information about the distance
@@ -318,9 +327,9 @@ function Director(engine) {
     // Add our ambient light to scene    
     _scene.add(Light());
     // Empty component container arrays
-    initializeComponentContainers();
+    initComponentContainers();
     // Add components to scene
-    addComponents(initializeActivationEvent);
+    addComponents(initEvents);
     // Return for chaining
     return this;
   }
@@ -362,7 +371,7 @@ function Director(engine) {
    * Will bind key down on spacebar to activating the component in view
    * @return {void}
    */
-  function initializeActivationEvent() {
+  function initEvents() {
     _debug  = _settings.debug;
     _events = _engine.getEvents();
     _events.addEventListener(
@@ -410,7 +419,6 @@ function Director(engine) {
         });
       }
       else if (instanceInView._activated) {
-
         instanceInView._noEvents = true;
         deactivateComponent(instanceInView, () => {
           instanceInView._noEvents = false;
@@ -568,7 +576,7 @@ function Director(engine) {
         Background(settings.background, _engine, (bg) => {
           if (bg) _scene.add(bg);
           if (done) return done();
-        });
+        }); 
       } else console.warn('Unable to load settings! [Error:', errs, ']');
     });
   }
@@ -577,7 +585,7 @@ function Director(engine) {
    * Called on start to empty containers for component constructors and instances
    * @return {void}
    */
-  function initializeComponentContainers() {
+  function initComponentContainers() {
     initComponents();
     initComponentConstructors();
   }
@@ -803,17 +811,25 @@ function Events() {
   }
 
   function trackKeys (event) {
-    triggerKeyEvent(getEventKeyDirection(event, 'keydown'));
+    triggerEvent(getEventKeyDirection(event, 'keydown'), event);
   }
 
-  function setTriggers () {
+  function trackLeapEvents(event, options) {
+    console.log('trackLeapEvents | event, options:', event, options);
+    triggerEvent(options.name, options);
+  }
+
+  function setKeyTriggers () {
     $('body').on('keydown', trackKeys);
   }
 
-  function triggerKeyEvent(key) {
-    if (listeners[key]) listeners[key].forEach(obj => {
-      return obj.callback()
-    });
+  function setLeapTriggers () {
+    $('body').on('leapEvent', trackLeapEvents);
+  }
+
+
+  function triggerEvent(key, eventDetails) {
+    if (listeners[key]) listeners[key].forEach(obj => obj.callback(eventDetails));
   }
 
   function addEventListener(key, done, id) {
@@ -833,12 +849,136 @@ function Events() {
     }
   }
 
-  setTriggers();
+  function init() {
+    setKeyTriggers();
+    setLeapTriggers();
+  }
 
   return {
     getListeners: () => listeners,
     addEventListener,
-    removeEventListener
+    removeEventListener,
+    init
+  };
+}
+
+function LeapController (_engine) {
+  // What distance is considered to be close between finger tips
+  // Used for pointer events
+  const tipVicinity   = 0.05;
+  // Leap adds elements to scene within different scale factor, we will use this 
+  // custom scale factor to divide the position vectors in order to place pointers
+  // to the scene properly
+  const scaleFactor   = 700;
+  // Delay between registering the same leap event
+  const eventDelay    = 500;
+  // Count each cycle in leap controller loop, useful for detecting or delaying
+  // changes in pointer events
+  let cycleCounter    = 0;
+  let _scene          = _engine.getScene();
+  // Initialize leap controller
+  let controller  = new Leap.Controller();
+  // Finger name to index map
+  let fingerNameMap   = ["thumb", "index", "middle", "ring", "pinky"];
+  // Pointers which we will track in the scene (representing fingertips)
+  let trackedPointers = {
+    leftThumb: { color: '#ff0000', idx: 0, object: null, hand: 'left' },
+    leftIndex: { color: '#00ff00', idx: 1, object: null, hand: 'left' },
+    rightThumb: { color: '#0000ff', idx: 0, object: null, hand: 'right' },
+    rightIndex: { color: '#0000ff', idx: 1, object: null, hand: 'right' }
+  };
+  // Events that we will track and trigger callbacks for if they are registered
+  let pointerEvents = {
+    // Event for pinching thumb and index fingers
+    leftPincer: {
+      registers: () => {
+        let thumb = trackedPointers.leftThumb.object;
+        let index = trackedPointers.leftIndex.object;
+
+        return (
+          thumb && index ? (distanceBetween(thumb, index) < tipVicinity) : false
+        );
+      }
+    },
+    rightPincer: {
+      registers: () => {
+        let thumb = trackedPointers.rightThumb.object;
+        let index = trackedPointers.rightIndex.object;
+
+        return (
+          thumb && index ? (distanceBetween(thumb, index) < tipVicinity) : false
+        );
+      }
+    }
+  };
+
+
+
+  // Initialize this controller
+  function init() {
+    // Check if we are in vr mode, and set the HMD tracking optimization for leap
+    _engine.VRDevicePresent((VRPresent) => {
+      controller.setOptimizeHMD(VRPresent);
+      Leap.loop({ hand: registerHand });
+    });
+  }
+
+  function registerHand(hand) {
+    // Sanity check to see if we have the fingers and hand
+    if (hand.fingers && hand.fingers.length) {
+      _.each(trackedPointers, (pointer, pointerName) => {
+        if (hand.type === pointer.hand && hand.fingers[pointer.idx]) {
+          if (!pointer.object) addFingerPointer(pointer);
+          positionPointerToFinger(pointer, hand.fingers[pointer.idx]);
+        }
+      });
+      checkPointerEvents();
+    }
+  }
+
+  function checkPointerEvents() {
+    let nowInt = Date.now();
+
+    _.each(pointerEvents, (event, name) => {
+      if (
+        (!event.lastRegistered || (nowInt - event.lastRegistered) > eventDelay) && 
+        event.registers()
+      ) {
+        console.log('registered | event name:', name);
+        event.lastRegistered = Date.now();
+        $('body').trigger('leapEvent', [{ name, event }]);
+      }
+    });
+  }
+
+  function addFingerPointer(pointer) {
+    pointer.object = new THREE.Mesh(
+      new THREE.BoxGeometry(0.002, 0.002, 0.002),
+      new THREE.MeshBasicMaterial({ color: pointer.color })
+    );
+    _scene.add(pointer.object);
+  }
+
+  function positionPointerToFinger(pointer, finger) {
+    pointer.object.position.copy(
+      new THREE.Vector3().fromArray(finger.tipPosition).divideScalar(scaleFactor)
+    );
+
+    pointer.object.position.y -= 0.4;
+    pointer.object.position.z -= 0.4;
+  }
+
+  function removeFingerPointers(removedHand) {
+    console.log('!hand removed')
+    _.each(trackedPointers, (pointer, pointerName) => {
+      if (pointer.object) _scene.remove(pointer.object);
+    });
+  }
+
+  return {
+    controller,
+    pointerEvents,
+    init
   };
 }
 
@@ -866,7 +1006,7 @@ function VRHandlers_(camera, renderer) {
   };
 }
 
-function Engine() {
+function Engine () {
 
   var context = this;
 
@@ -890,12 +1030,17 @@ function Engine() {
 
   var director = null;
 
+  var leap = null;
 
   function init() {
     view = View(this);
     events = Events();
     director = Director(this);
+    leap = LeapController(this);
+
+    leap.init();
     director.init(scene);
+    events.init();
 
     return this;
   }
