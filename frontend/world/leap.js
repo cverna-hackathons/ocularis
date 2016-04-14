@@ -23,7 +23,7 @@ export default function (_engine) {
     leftThumb: { color: '#ff0000', idx: 0, object: null, hand: 'left' },
     leftIndex: { color: '#00ff00', idx: 1, object: null, hand: 'left' },
     rightThumb: { color: '#0000ff', idx: 0, object: null, hand: 'right' },
-    rightIndex: { color: '#0000ff', idx: 1, object: null, hand: 'right' }
+    rightIndex: { color: '#00000f', idx: 1, object: null, hand: 'right' }
   };
   // Events that we will track and trigger callbacks for if they are registered
   let pointerEvents = {
@@ -62,6 +62,7 @@ export default function (_engine) {
   }
 
   function registerHand(hand) {
+    cycleCounter++;
     // Sanity check to see if we have the fingers and hand
     if (hand.fingers && hand.fingers.length) {
       _.each(trackedPointers, (pointer, pointerName) => {

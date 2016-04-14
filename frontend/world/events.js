@@ -1,9 +1,8 @@
 export default function() {
-  var listeners = {};
+  let listeners = {};
 
   function getEventKeyDirection (event, trigger) {
-    // console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
-    var key;
+    let key;
     switch (event.keyCode) {
       // W-key
       // ArrowUp
@@ -36,26 +35,25 @@ export default function() {
     return key;
   }
 
-  function trackKeys (event) {
+  function triggerKeyboardEvent(event) {
     triggerEvent(getEventKeyDirection(event, 'keydown'), event);
   }
 
-  function trackLeapEvents(event, options) {
-    console.log('trackLeapEvents | event, options:', event, options);
+  function triggerLeapEvent(event, options) {
     triggerEvent(options.name, options);
   }
 
-  function setKeyTriggers () {
-    $('body').on('keydown', trackKeys);
+  function setKeyTriggers() {
+    $('body').on('keydown', triggerKeyboardEvent);
   }
 
-  function setLeapTriggers () {
-    $('body').on('leapEvent', trackLeapEvents);
+  function setLeapTriggers() {
+    $('body').on('leapEvent', triggerLeapEvent);
   }
 
 
-  function triggerEvent(key, eventDetails) {
-    if (listeners[key]) listeners[key].forEach(obj => obj.callback(eventDetails));
+  function triggerEvent(key, event) {
+    if (listeners[key]) listeners[key].forEach(obj => obj.callback(event));
   }
 
   function addEventListener(key, done, id) {

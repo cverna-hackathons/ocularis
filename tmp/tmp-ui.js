@@ -461,15 +461,22 @@ function Director(engine) {
       .start({ deltaVec: transformRelation.distanceVec, transformFn: moveBy })
       .start({ deltaVec: transformRelation.rotationVec, transformFn: rotateBy })
     .then(() => {
-      renderActivationData(instance);
-      instance._activated = true;
+      renderActivated(instance);
+      
       if (done) return done();
     });
     
     console.log('transformRelation:', transformRelation);
   }
 
-  function renderActivationData(instance) {
+  /**
+   * Render component activation
+   * @param  {Object} Component instance to render data to 
+   * @return {void}
+   */
+  function renderActivated(instance) {
+    // Mark instance as activated
+    instance._activated = true;
     // Get initial data from provider
     // Render it to drawables
     instance.draw([
@@ -480,8 +487,8 @@ function Director(engine) {
       },
       {
         drawableId: 'main',
-        content: 'webcam',
-        type: 'video'
+        content: 'text',
+        type: 'text'
       },
       {
         drawableId: 'rightSide',

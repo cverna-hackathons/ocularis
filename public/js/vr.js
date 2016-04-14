@@ -455,15 +455,22 @@ function Director(engine) {
     transformRelation.rotationVec.negate();
 
     Animate(component).start({ deltaVec: transformRelation.distanceVec, transformFn: moveBy }).start({ deltaVec: transformRelation.rotationVec, transformFn: rotateBy }).then(function () {
-      renderActivationData(instance);
-      instance._activated = true;
+      renderActivated(instance);
+
       if (done) return done();
     });
 
     console.log('transformRelation:', transformRelation);
   }
 
-  function renderActivationData(instance) {
+  /**
+   * Render component activation
+   * @param  {Object} Component instance to render data to 
+   * @return {void}
+   */
+  function renderActivated(instance) {
+    // Mark instance as activated
+    instance._activated = true;
     // Get initial data from provider
     // Render it to drawables
     instance.draw([{
@@ -472,8 +479,8 @@ function Director(engine) {
       type: 'image'
     }, {
       drawableId: 'main',
-      content: 'webcam',
-      type: 'video'
+      content: 'text',
+      type: 'text'
     }, {
       drawableId: 'rightSide',
       content: 'Webcam video for webcam is loaded to the left.',
@@ -743,8 +750,7 @@ function Events() {
   var listeners = {};
 
   function getEventKeyDirection(event, trigger) {
-    // console.log('getEventKeyDirection | event.keyCode:', event.keyCode, trigger);
-    var key;
+    var key = undefined;
     switch (event.keyCode) {
       // W-key
       // ArrowUp
@@ -777,26 +783,25 @@ function Events() {
     return key;
   }
 
-  function trackKeys(event) {
+  function triggerKeyboardEvent(event) {
     triggerEvent(getEventKeyDirection(event, 'keydown'), event);
   }
 
-  function trackLeapEvents(event, options) {
-    console.log('trackLeapEvents | event, options:', event, options);
+  function triggerLeapEvent(event, options) {
     triggerEvent(options.name, options);
   }
 
   function setKeyTriggers() {
-    $('body').on('keydown', trackKeys);
+    $('body').on('keydown', triggerKeyboardEvent);
   }
 
   function setLeapTriggers() {
-    $('body').on('leapEvent', trackLeapEvents);
+    $('body').on('leapEvent', triggerLeapEvent);
   }
 
-  function triggerEvent(key, eventDetails) {
+  function triggerEvent(key, event) {
     if (listeners[key]) listeners[key].forEach(function (obj) {
-      return obj.callback(eventDetails);
+      return obj.callback(event);
     });
   }
 
@@ -855,7 +860,7 @@ function LeapController(_engine) {
     leftThumb: { color: '#ff0000', idx: 0, object: null, hand: 'left' },
     leftIndex: { color: '#00ff00', idx: 1, object: null, hand: 'left' },
     rightThumb: { color: '#0000ff', idx: 0, object: null, hand: 'right' },
-    rightIndex: { color: '#0000ff', idx: 1, object: null, hand: 'right' }
+    rightIndex: { color: '#00000f', idx: 1, object: null, hand: 'right' }
   };
   // Events that we will track and trigger callbacks for if they are registered
   var pointerEvents = {
@@ -888,6 +893,7 @@ function LeapController(_engine) {
   }
 
   function registerHand(hand) {
+    cycleCounter++;
     // Sanity check to see if we have the fingers and hand
     if (hand.fingers && hand.fingers.length) {
       _.each(trackedPointers, function (pointer, pointerName) {
