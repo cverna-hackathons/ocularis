@@ -6,5 +6,6 @@ public/js/ui.js
 public/js/vr.js
 public/sandbox/*.js
 app/lib/sandbox/npm-debug.log
-tmp/*.js
+tmp/tmp-ui.js
+tmp/tmp-vr.js
 npm-debug.log
