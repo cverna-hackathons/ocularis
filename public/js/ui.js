@@ -351,7 +351,7 @@ function Director(engine) {
   function initEvents() {
     _debug = _settings.debug;
     _events = _engine.getEvents();
-    _events.addEventListener(_settings && _settings.general && _settings.general.activationKey ? _settings.general.activationKey : 'spacebar', toggleComponentActivation, activationID);
+    _events.addEventListeners(_settings && _settings.events && _settings.events.activationKeys ? _settings.events.activationKeys : 'spacebar', toggleComponentActivation, activationID);
     _engine.VRDevicePresent(function (present) {
       _VRDevicesPresent = present;
     });

@@ -4,7 +4,6 @@ export default function() {
   function getEventKeyDirection (event, trigger) {
     let key;
     switch (event.keyCode) {
-      // W-key
       // ArrowUp
       case 38:
         key = 'forward';
@@ -31,6 +30,8 @@ export default function() {
       case 90:
         key = 'z';
         break;
+      default:
+        key = event.keyCode;
     }
     return key;
   }
@@ -43,6 +44,10 @@ export default function() {
     triggerEvent(options.name, options);
   }
 
+  function triggerEvent(key, event) {
+    if (listeners[key]) listeners[key].forEach(obj => obj.callback(event));
+  }
+
   function setKeyTriggers() {
     $('body').on('keydown', triggerKeyboardEvent);
   }
@@ -51,15 +56,23 @@ export default function() {
     $('body').on('leapEvent', triggerLeapEvent);
   }
 
+  function addEventListeners(keys, callback) {
+    let ids = [];
 
-  function triggerEvent(key, event) {
-    if (listeners[key]) listeners[key].forEach(obj => obj.callback(event));
+    if (keys instanceof Array) {
+      ids = keys.map(key => addEventListener(key, callback));
+    }
+    else if (typeof keys === 'string') { 
+      ids.push(addEventListener(keys, callback));
+    }
+    console.log('addEventListeners | ids:', ids)
+    return ids;
   }
 
-  function addEventListener(key, done, id) {
+  function addEventListener(key, callback, id) {
     if (!listeners[key]) listeners[key] = [];
-    id = (id || Date.now());
-    listeners[key].push({ callback: done, id: id });
+    id = (id || ([key, Date.now()].join('-')));
+    listeners[key].push({ callback, id });
     return id;
   }
 
@@ -81,6 +94,7 @@ export default function() {
   return {
     getListeners: () => listeners,
     addEventListener,
+    addEventListeners,
     removeEventListener,
     init
   };

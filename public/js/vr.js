@@ -364,7 +364,7 @@ function Director(engine) {
   function initEvents() {
     _debug = _settings.debug;
     _events = _engine.getEvents();
-    _events.addEventListener(_settings && _settings.general && _settings.general.activationKey ? _settings.general.activationKey : 'spacebar', toggleComponentActivation, activationID);
+    _events.addEventListeners(_settings && _settings.events && _settings.events.activationKeys ? _settings.events.activationKeys : 'spacebar', toggleComponentActivation, activationID);
     _engine.VRDevicePresent(function (present) {
       _VRDevicesPresent = present;
     });
@@ -752,7 +752,6 @@ function Events() {
   function getEventKeyDirection(event, trigger) {
     var key = undefined;
     switch (event.keyCode) {
-      // W-key
       // ArrowUp
       case 38:
         key = 'forward';
@@ -779,6 +778,8 @@ function Events() {
       case 90:
         key = 'z';
         break;
+      default:
+        key = event.keyCode;
     }
     return key;
   }
@@ -791,6 +792,12 @@ function Events() {
     triggerEvent(options.name, options);
   }
 
+  function triggerEvent(key, event) {
+    if (listeners[key]) listeners[key].forEach(function (obj) {
+      return obj.callback(event);
+    });
+  }
+
   function setKeyTriggers() {
     $('body').on('keydown', triggerKeyboardEvent);
   }
@@ -799,16 +806,24 @@ function Events() {
     $('body').on('leapEvent', triggerLeapEvent);
   }
 
-  function triggerEvent(key, event) {
-    if (listeners[key]) listeners[key].forEach(function (obj) {
-      return obj.callback(event);
-    });
+  function addEventListeners(keys, callback) {
+    var ids = [];
+
+    if (keys instanceof Array) {
+      ids = keys.map(function (key) {
+        return addEventListener(key, callback);
+      });
+    } else if (typeof keys === 'string') {
+      ids.push(addEventListener(keys, callback));
+    }
+    console.log('addEventListeners | ids:', ids);
+    return ids;
   }
 
-  function addEventListener(key, done, id) {
+  function addEventListener(key, callback, id) {
     if (!listeners[key]) listeners[key] = [];
-    id = id || Date.now();
-    listeners[key].push({ callback: done, id: id });
+    id = id || [key, Date.now()].join('-');
+    listeners[key].push({ callback: callback, id: id });
     return id;
   }
 
@@ -832,6 +847,7 @@ function Events() {
       return listeners;
     },
     addEventListener: addEventListener,
+    addEventListeners: addEventListeners,
     removeEventListener: removeEventListener,
     init: init
   };

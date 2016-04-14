@@ -15,8 +15,8 @@ module.exports = (() => {
       background: {
         color: '#222222'
       },
-      ui: {
-        activationKey: 'spacebar'
+      events: {
+        activationKeys: ['spacebar', 'leftPincer']
       },
       components: [
         {
