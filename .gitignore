@@ -2,10 +2,10 @@ app/config/apis.json
 app/config/environments.json
 app/config/database.json
 node_modules/
+tmp/tmp-ui.js
+tmp/tmp-vr.js
 public/js/ui.js
 public/js/vr.js
 public/sandbox/*.js
 app/lib/sandbox/npm-debug.log
-tmp/tmp-ui.js
-tmp/tmp-vr.js
 npm-debug.log

@@ -484,7 +484,7 @@ function Director(engine) {
 
   /**
    * Render component activation
-   * @param  {Object} Component instance to render data to 
+   * @param  {Object} instance - Component instance to render data to 
    * @return {void}
    */
   function renderActivated(instance) {
@@ -513,7 +513,8 @@ function Director(engine) {
 
   /**
    * Reset component arrangement to initial position
-   * @param  {Object} Component instance to rearrange
+   * @param  {Object} instance - Component instance to rearrange
+   * @param  {Function} done - Callback
    * @return {void}
    */
   function deactivateComponent(instance, done) {
@@ -547,6 +548,7 @@ function Director(engine) {
     });
   }
 
+  // Adds arrow in direction of camera view
   function addViewHelper() {
     if (_arrow) _scene.remove(_arrow);
     _arrow = Arrow(_camera);
@@ -690,8 +692,8 @@ function Director(engine) {
 
   /**
    * Retrieves the component constructor from global array
-   * @param  {name: String} 
-   * @return {function} Component constructor function
+   * @param  {String} name - Component name 
+   * @return {Function} Component constructor function
    */
   function getComponentConstructor(name) {
     var _constructor;
@@ -782,7 +784,7 @@ function View(engine) {
 function Events() {
   let listeners = {};
 
-  function getEventKeyDirection (event, trigger) {
+  function getKeyboardEventKey(event, trigger) {
     let key;
     switch (event.keyCode) {
       // ArrowUp
@@ -818,7 +820,7 @@ function Events() {
   }
 
   function triggerKeyboardEvent(event) {
-    triggerEvent(getEventKeyDirection(event, 'keydown'), event);
+    triggerEvent(getKeyboardEventKey(event, 'keydown'), event);
   }
 
   function triggerLeapEvent(event, options) {
@@ -856,7 +858,7 @@ function Events() {
     listeners[key].push({ callback, id });
     return id;
   }
-
+  
   function removeEventListener(id) {
     for(var key in listeners) {
       for (var i=0, len=listeners[key].length; i<len; i++) {

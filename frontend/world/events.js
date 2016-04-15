@@ -1,7 +1,7 @@
 export default function() {
   let listeners = {};
 
-  function getEventKeyDirection (event, trigger) {
+  function getKeyboardEventKey(event, trigger) {
     let key;
     switch (event.keyCode) {
       // ArrowUp
@@ -37,7 +37,7 @@ export default function() {
   }
 
   function triggerKeyboardEvent(event) {
-    triggerEvent(getEventKeyDirection(event, 'keydown'), event);
+    triggerEvent(getKeyboardEventKey(event, 'keydown'), event);
   }
 
   function triggerLeapEvent(event, options) {
@@ -75,7 +75,7 @@ export default function() {
     listeners[key].push({ callback, id });
     return id;
   }
-
+  
   function removeEventListener(id) {
     for(var key in listeners) {
       for (var i=0, len=listeners[key].length; i<len; i++) {

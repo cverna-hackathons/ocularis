@@ -194,7 +194,7 @@ export default function(engine) {
 
   /**
    * Render component activation
-   * @param  {Object} Component instance to render data to 
+   * @param  {Object} instance - Component instance to render data to 
    * @return {void}
    */
   function renderActivated(instance) {
@@ -223,7 +223,8 @@ export default function(engine) {
 
   /**
    * Reset component arrangement to initial position
-   * @param  {Object} Component instance to rearrange
+   * @param  {Object} instance - Component instance to rearrange
+   * @param  {Function} done - Callback
    * @return {void}
    */
   function deactivateComponent(instance, done) {
@@ -257,6 +258,7 @@ export default function(engine) {
     });
   }
 
+  // Adds arrow in direction of camera view
   function addViewHelper() {
     if (_arrow) _scene.remove(_arrow);
     _arrow = Arrow(_camera);
@@ -400,8 +402,8 @@ export default function(engine) {
 
   /**
    * Retrieves the component constructor from global array
-   * @param  {name: String} 
-   * @return {function} Component constructor function
+   * @param  {String} name - Component name 
+   * @return {Function} Component constructor function
    */
   function getComponentConstructor(name) {
     var _constructor;
