@@ -46,6 +46,10 @@ export default function () {
     return this;
   }
 
+  function getLeap() {
+    return leap;
+  }
+
   function draw() {
     Draw(this, scene, camera, VRHandlers, renderer)();
   }

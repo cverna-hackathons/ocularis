@@ -25,7 +25,7 @@ passport.deserializeUser((_user, done) => {
     .catch(done);
 });
 
-module.exports = app => {
+module.exports = (app) => {
   app.use(passport.initialize());
   app.use(passport.session());
 };

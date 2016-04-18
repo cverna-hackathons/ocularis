@@ -378,7 +378,6 @@ function Director(engine) {
   function toggleComponentActivation() {
     // XXX: just changing rotation for testing
     if (!_VRDevicesPresent) {
-      console.log('vrdevice not present');
       _camera.rotation.z += Math.PI / 180 * 2;
       _camera.rotation.y += Math.PI / 180 * 2;
       _camera.position.x -= .1;
@@ -749,9 +748,16 @@ function View(engine) {
 }
 
 function Events() {
+
+  // Event listeners container
   var listeners = {};
 
-  function getKeyboardEventKey(event, trigger) {
+  /**
+   * Maps the key name per keyboard event's key code
+   * @param  {Object} event - Keydown event
+   * @return {String} key - Key name
+   */
+  function getKeyboardEventKey(event) {
     var key = undefined;
     switch (event.keyCode) {
       // ArrowUp
@@ -786,28 +792,53 @@ function Events() {
     return key;
   }
 
+  /**
+   * Trigger listener callback bound to keyboard event listener 
+   * @param  {Object} event - Keyboard event
+   * @return {void}
+   */
   function triggerKeyboardEvent(event) {
-    triggerEvent(getKeyboardEventKey(event, 'keydown'), event);
+    triggerEvent(getKeyboardEventKey(event), event);
   }
 
+  /**
+   * Trigger listener callback bound to leap event listener 
+   * @param  {Object} event - Leap event
+   * @param  {Object} options - Event's additional options
+   * @return {void}
+   */
   function triggerLeapEvent(event, options) {
     triggerEvent(options.name, options);
   }
 
-  function triggerEvent(key, event) {
+  /**
+   * Trigger listener callback, if any bound 
+   * @param  {Object} key - Key name for the triggering event
+   * @param  {Object} options - Event's additional options
+   * @return {void}
+   */
+  function triggerEvent(key, options) {
     if (listeners[key]) listeners[key].forEach(function (obj) {
-      return obj.callback(event);
+      return obj.callback(options);
     });
   }
 
+  // Set up listening to keyboard events
   function setKeyTriggers() {
     $('body').on('keydown', triggerKeyboardEvent);
   }
 
+  // Set up listening to leap events
   function setLeapTriggers() {
     $('body').on('leapEvent', triggerLeapEvent);
   }
 
+  /**
+   * Add listeners for events with common callback 
+   * @param  {Object|String} keys - Key names for the triggering event
+   * @param  {Function} callback - Trigger callback for event
+   * @return {Array} ids - IDs of the event listeners created
+   */
   function addEventListeners(keys, callback) {
     var ids = [];
 
@@ -822,6 +853,13 @@ function Events() {
     return ids;
   }
 
+  /**
+   * Add listener for event 
+   * @param  {String} key - Key name for the triggering event
+   * @param  {Function} callback - Trigger callback for event
+   * @param  {String} [id] - Listener ID (concatenation of key name and time integer)
+   * @return {String} id - ID of the event listener created
+   */
   function addEventListener(key, callback, id) {
     if (!listeners[key]) listeners[key] = [];
     id = id || [key, Date.now()].join('-');
@@ -829,6 +867,7 @@ function Events() {
     return id;
   }
 
+  // Removes event listener, found by id
   function removeEventListener(id) {
     for (var key in listeners) {
       for (var i = 0, len = listeners[key].length; i < len; i++) {
@@ -839,6 +878,7 @@ function Events() {
     }
   }
 
+  // Run from engine, sets up all the triggers
   function init() {
     setKeyTriggers();
     setLeapTriggers();
@@ -858,46 +898,56 @@ function Events() {
 function LeapController(_engine) {
   // What distance is considered to be close between finger tips
   // Used for pointer events
-  var tipVicinity = 0.05;
+  var tipVicinity = 0.03;
   // Leap adds elements to scene within different scale factor, we will use this
   // custom scale factor to divide the position vectors in order to place pointers
   // to the scene properly
   var scaleFactor = 700;
   // Delay between registering the same leap event
-  var eventDelay = 500;
+  var eventDelay = 700;
+  // Finger name to index map
+  var fingerNameMap = ['thumb', 'index', 'middle', 'ring', 'pinky'];
+  // Hand map
+  var handTypes = ['left', 'right'];
+
   // Count each cycle in leap controller loop, useful for detecting or delaying
   // changes in pointer events
-  var cycleCounter = 0;
+  var _cycleCounter = 0;
   var _scene = _engine.getScene();
   // Initialize leap controller
-  var controller = new Leap.Controller();
-  // Finger name to index map
-  var fingerNameMap = ["thumb", "index", "middle", "ring", "pinky"];
+  var _controller = new Leap.Controller();
   // Pointers which we will track in the scene (representing fingertips)
-  var trackedPointers = {
-    leftThumb: { color: '#ff0000', idx: 0, object: null, hand: 'left' },
-    leftIndex: { color: '#00ff00', idx: 1, object: null, hand: 'left' },
-    rightThumb: { color: '#0000ff', idx: 0, object: null, hand: 'right' },
-    rightIndex: { color: '#00000f', idx: 1, object: null, hand: 'right' }
+  var _pointers = {
+    // leftThumb: { color: '#ff0000', idx: 0, object: null, hand: 'left' },
+    // leftIndex: { color: '#00ff00', idx: 1, object: null, hand: 'left' },
+    // leftMiddle: { color: '#00ff00', idx: 2, object: null, hand: 'left' },
+    // rightThumb: { color: '#ff0000', idx: 0, object: null, hand: 'right' },
+    // rightIndex: { color: '#00ff00', idx: 1, object: null, hand: 'right' }
   };
   // Events that we will track and trigger callbacks for if they are registered
-  var pointerEvents = {
-    // Event for pinching thumb and index fingers
-    leftPincer: {
-      registers: function registers() {
-        var thumb = trackedPointers.leftThumb.object;
-        var index = trackedPointers.leftIndex.object;
+  var _events = {
+    sign: {
+      // Event for pinching thumb and index fingers
+      leftPincer: {
+        registers: function registers() {
+          var thumb = _pointers.leftThumb.object;
+          var index = _pointers.leftIndex.object;
 
-        return thumb && index ? distanceBetween(thumb, index) < tipVicinity : false;
+          return pincerBetween(thumb, index);
+        }
+      },
+      rightPincer: {
+        registers: function registers() {
+          var thumb = _pointers.rightThumb.object;
+          var index = _pointers.rightIndex.object;
+
+          return pincerBetween(thumb, index);
+        }
       }
     },
-    rightPincer: {
-      registers: function registers() {
-        var thumb = trackedPointers.rightThumb.object;
-        var index = trackedPointers.rightIndex.object;
-
-        return thumb && index ? distanceBetween(thumb, index) < tipVicinity : false;
-      }
+    collision: {
+      toCheck: [],
+      registers: function registers() {}
     }
   };
 
@@ -905,35 +955,79 @@ function LeapController(_engine) {
   function init() {
     // Check if we are in vr mode, and set the HMD tracking optimization for leap
     _engine.VRDevicePresent(function (VRPresent) {
-      controller.setOptimizeHMD(VRPresent);
-      Leap.loop({ hand: registerHand });
+      var camera = _engine.getCamera();
+
+      initPointers();
+      _controller.setOptimizeHMD(VRPresent);
+
+      // controller.use('transform', {
+      //   // effectiveParent: camera,
+      //   // quaternion: camera.quaternion,
+      //   // position: new THREE.Vector3(0,0,-200)
+      // })
+      _controller.loop({ hand: alignPointers }).use('handEntry').on('handFound', registerHand).on('handLost', removeFingerPointers);
+    });
+  }
+
+  function initPointers() {
+    handTypes.forEach(function (handType) {
+      fingerNameMap.forEach(function (fingerName, fingerIdx) {
+        _pointers[[handType, capitalizeFirst(fingerName)].join('')] = {
+          color: fingerIdx ? '#00ff00' : '#ff0000',
+          idx: fingerIdx,
+          object: null,
+          hand: handType
+        };
+      });
     });
   }
 
   function registerHand(hand) {
-    cycleCounter++;
-    // Sanity check to see if we have the fingers and hand
-    if (hand.fingers && hand.fingers.length) {
-      _.each(trackedPointers, function (pointer, pointerName) {
-        if (hand.type === pointer.hand && hand.fingers[pointer.idx]) {
-          if (!pointer.object) addFingerPointer(pointer);
-          positionPointerToFinger(pointer, hand.fingers[pointer.idx]);
-        }
-      });
-      checkPointerEvents();
-    }
+    _.each(_pointers, function (pointer, pointerName) {
+      if (pointerMapsToHand(pointer, hand)) {
+        if (!pointer.object) addFingerPointer(pointer);
+      }
+    });
+  }
+
+  // Check if this is the correct hand
+  function pointerMapsToHand(pointer, hand) {
+    return hand && hand.fingers && hand.type === pointer.hand && hand.fingers[pointer.idx];
+  }
+
+  function pincerBetween(pointerOne, pointerTwo) {
+    return pointerOne && pointerTwo ? distanceBetween(pointerOne, pointerTwo) < tipVicinity : false;
+  }
+
+  function alignPointers(hand) {
+    _cycleCounter++;
+    _.each(_pointers, function (pointer, pointerName) {
+      if (pointerMapsToHand(pointer, hand)) {
+        positionPointerToFinger(pointer, hand.fingers[pointer.idx]);
+      }
+    });
+    checkPointerEvents();
   }
 
   function checkPointerEvents() {
+    checkSignEvents();
+    checkCollisionEvents();
+  }
+
+  function checkSignEvents() {
     var nowInt = Date.now();
 
-    _.each(pointerEvents, function (event, name) {
+    if (_events.collision.toCheck.lenght) _.each(_events.sign, function (event, name) {
       if ((!event.lastRegistered || nowInt - event.lastRegistered > eventDelay) && event.registers()) {
         console.log('registered | event name:', name);
         event.lastRegistered = Date.now();
         $('body').trigger('leapEvent', [{ name: name, event: event }]);
       }
     });
+  }
+
+  function checkCollisionEvents() {
+    var nowInt = Date.now();
   }
 
   function addFingerPointer(pointer) {
@@ -950,14 +1044,21 @@ function LeapController(_engine) {
 
   function removeFingerPointers(removedHand) {
     console.log('!hand removed');
-    _.each(trackedPointers, function (pointer, pointerName) {
-      if (pointer.object) _scene.remove(pointer.object);
+    _.each(_pointers, function (pointer, pointerName) {
+      if (pointer.object && removedHand.type === pointer.hand) {
+        _scene.remove(pointer.object);
+        pointer.object = null;
+      }
     });
   }
 
+  function capitalizeFirst(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
   return {
-    controller: controller,
-    pointerEvents: pointerEvents,
+    controller: _controller,
+    events: _events,
     init: init
   };
 }
@@ -1023,6 +1124,10 @@ function Engine() {
     events.init();
 
     return this;
+  }
+
+  function getLeap() {
+    return leap;
   }
 
   function draw() {

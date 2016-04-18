@@ -1,7 +1,16 @@
+
+
 export default function() {
+
+  // Event listeners container
   let listeners = {};
 
-  function getKeyboardEventKey(event, trigger) {
+  /**
+   * Maps the key name per keyboard event's key code
+   * @param  {Object} event - Keydown event
+   * @return {String} key - Key name
+   */
+  function getKeyboardEventKey(event) {
     let key;
     switch (event.keyCode) {
       // ArrowUp
@@ -36,26 +45,51 @@ export default function() {
     return key;
   }
 
+  /**
+   * Trigger listener callback bound to keyboard event listener 
+   * @param  {Object} event - Keyboard event
+   * @return {void}
+   */
   function triggerKeyboardEvent(event) {
-    triggerEvent(getKeyboardEventKey(event, 'keydown'), event);
+    triggerEvent(getKeyboardEventKey(event), event);
   }
 
+  /**
+   * Trigger listener callback bound to leap event listener 
+   * @param  {Object} event - Leap event
+   * @param  {Object} options - Event's additional options
+   * @return {void}
+   */
   function triggerLeapEvent(event, options) {
     triggerEvent(options.name, options);
   }
 
-  function triggerEvent(key, event) {
-    if (listeners[key]) listeners[key].forEach(obj => obj.callback(event));
+  /**
+   * Trigger listener callback, if any bound 
+   * @param  {Object} key - Key name for the triggering event
+   * @param  {Object} options - Event's additional options
+   * @return {void}
+   */
+  function triggerEvent(key, options) {
+    if (listeners[key]) listeners[key].forEach(obj => obj.callback(options));
   }
 
+  // Set up listening to keyboard events
   function setKeyTriggers() {
     $('body').on('keydown', triggerKeyboardEvent);
   }
 
+  // Set up listening to leap events
   function setLeapTriggers() {
     $('body').on('leapEvent', triggerLeapEvent);
   }
 
+  /**
+   * Add listeners for events with common callback 
+   * @param  {Object|String} keys - Key names for the triggering event
+   * @param  {Function} callback - Trigger callback for event
+   * @return {Array} ids - IDs of the event listeners created
+   */
   function addEventListeners(keys, callback) {
     let ids = [];
 
@@ -69,6 +103,13 @@ export default function() {
     return ids;
   }
 
+  /**
+   * Add listener for event 
+   * @param  {String} key - Key name for the triggering event
+   * @param  {Function} callback - Trigger callback for event
+   * @param  {String} [id] - Listener ID (concatenation of key name and time integer)
+   * @return {String} id - ID of the event listener created
+   */
   function addEventListener(key, callback, id) {
     if (!listeners[key]) listeners[key] = [];
     id = (id || ([key, Date.now()].join('-')));
@@ -76,6 +117,7 @@ export default function() {
     return id;
   }
   
+  // Removes event listener, found by id
   function removeEventListener(id) {
     for(var key in listeners) {
       for (var i=0, len=listeners[key].length; i<len; i++) {
@@ -86,6 +128,7 @@ export default function() {
     }
   }
 
+  // Run from engine, sets up all the triggers
   function init() {
     setKeyTriggers();
     setLeapTriggers();

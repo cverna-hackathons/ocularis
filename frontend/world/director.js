@@ -18,12 +18,12 @@ export default function(engine) {
   // Add raycaster object to find intersects for the above
   let _scene, _camera, _arrow, _raycaster, _events, _settings, _fitting, _debug;
   // Create a shared object to assign instance in view
-  let _inView = {};
-  let _engine = engine;
-  let _previewMode = false;
-  let _VRDevicesPresent = false;
+  let _inView             = {};
+  let _engine             = engine;
+  let _previewMode        = false;
+  let _VRDevicesPresent   = false;
 
-  const activationID    = 'componentActivation';
+  const activationID      = 'componentActivation';
 
   /**
    * Initialize the objects in scene
@@ -102,7 +102,6 @@ export default function(engine) {
   function toggleComponentActivation() {
     // XXX: just changing rotation for testing
     if (!_VRDevicesPresent) {
-      console.log('vrdevice not present')
       _camera.rotation.z += ((Math.PI / 180) * 2);
       _camera.rotation.y += ((Math.PI / 180) * 2);
       _camera.position.x -= .1;

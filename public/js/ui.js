@@ -365,7 +365,6 @@ function Director(engine) {
   function toggleComponentActivation() {
     // XXX: just changing rotation for testing
     if (!_VRDevicesPresent) {
-      console.log('vrdevice not present');
       _camera.rotation.z += Math.PI / 180 * 2;
       _camera.rotation.y += Math.PI / 180 * 2;
       _camera.position.x -= .1;
