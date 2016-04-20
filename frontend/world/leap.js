@@ -127,21 +127,28 @@ export default function (_engine) {
 
   function checkPointerEvents() {
     checkSignEvents();
-    checkCollisionEvents();
+    // checkCollisionEvents();
   }
 
   function checkSignEvents() {
     let nowInt = Date.now();
 
-    if (_events.collision.toCheck.lenght)
     _.each(_events.sign, (event, name) => {
       if (
         (!event.lastRegistered || (nowInt - event.lastRegistered) > eventDelay) && 
         event.registers()
       ) {
-        console.log('registered | event name:', name);
-        event.lastRegistered = Date.now();
-        $('body').trigger('leapEvent', [{ name, event }]);
+        // Check for previous registration and clean it, 
+        // this is so that we ignore one off firing inaccurate events
+        if (event.prevRegistered) {
+          event.prevRegistered = false;
+        } else {
+          event.prevRegistered = true;
+          console.log('registered | event name:', name);
+          event.lastRegistered = Date.now();
+          $('body').trigger('leapEvent', [{ name, event }]);  
+        }
+        
       }
     });
   }
@@ -163,7 +170,6 @@ export default function (_engine) {
     pointer.object.position.copy(
       new THREE.Vector3().fromArray(finger.tipPosition).divideScalar(scaleFactor)
     );
-
     pointer.object.position.y -= 0.4;
     pointer.object.position.z -= 0.4;
   }

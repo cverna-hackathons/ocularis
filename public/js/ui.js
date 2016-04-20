@@ -477,7 +477,7 @@ function Director(engine) {
   /**
    * Reset component arrangement to initial position
    * @param  {Object} instance - Component instance to rearrange
-   * @param  {Function} done - Callback
+   * @param  {Function} done - Callback for when finished
    * @return {void}
    */
   function deactivateComponent(instance, done) {
