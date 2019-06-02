@@ -924,6 +924,8 @@ function LeapController(_engine) {
     // rightThumb: { color: '#ff0000', idx: 0, object: null, hand: 'right' },
     // rightIndex: { color: '#00ff00', idx: 1, object: null, hand: 'right' }
   };
+  // Our vr enabled
+  var _VRMode = false;
   // Events that we will track and trigger callbacks for if they are registered
   var _events = {
     sign: {
@@ -955,6 +957,7 @@ function LeapController(_engine) {
   function init() {
     // Check if we are in vr mode, and set the HMD tracking optimization for leap
     _engine.VRDevicePresent(function (VRPresent) {
+      _VRMode = VRPresent;
       var camera = _engine.getCamera();
 
       initPointers();
@@ -1044,8 +1047,11 @@ function LeapController(_engine) {
 
   function positionPointerToFinger(pointer, finger) {
     pointer.object.position.copy(new THREE.Vector3().fromArray(finger.tipPosition).divideScalar(scaleFactor));
-    pointer.object.position.y -= 0.4;
-    pointer.object.position.z -= 0.4;
+
+    if (!_VRMode) {
+      pointer.object.position.y -= 0.4;
+      pointer.object.position.z -= 0.4;
+    }
   }
 
   function removeFingerPointers(removedHand) {
